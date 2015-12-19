@@ -18,7 +18,7 @@ bool keysPressed[256] = {};
 constexpr int resetFrames = 60 /*fps*/ * 10 /*seconds*/;
 static int frame          = 0;
 
-// Apply WASD + QE commands to an object.
+// Apply WASD + QE commands to an object. Space for extra speed.
 // A DirectionalObject must have the following methods:
 //      void moveBy(glm::vec3);
 //      glm::vec3 forward(); // W and S
@@ -77,7 +77,9 @@ void handleKeyPress(unsigned char key, int x, int y) {
 
 void handleMouseMotion(int x, int y) {
     int dx = x - mouse.x;
-    int dy = -(y - mouse.y); // +y is downward in screen space.
+    int dy = y - mouse.y;
+
+    camera.rotate(-1e-3f * as<float>(dx), -1e-3f * as<float>(dy));
 
     mouse = glm::vec2(x, y);
 }
@@ -85,6 +87,10 @@ void handleMouseMotion(int x, int y) {
 template <typename DirectionalObject>
 void moveFromWASDQE(DirectionalObject &obj, float speed, float dt) {
     glm::vec3 vel = glm::vec3();
+
+    if (keysPressed[' ']) {
+        speed *= 5.0f;
+    }
 
     if (keysPressed['w']) {
         vel += obj.forward();
@@ -100,6 +106,11 @@ void moveFromWASDQE(DirectionalObject &obj, float speed, float dt) {
         vel -= obj.right();
     }
 
+    // Normalize before doing up and down, the speed is indepdent of them.
+    if (glm::length(vel) != 0.0f) {
+        vel = glm::normalize(vel);
+    }
+
     if (keysPressed['q']) {
         vel += obj.up();
     }
@@ -107,12 +118,7 @@ void moveFromWASDQE(DirectionalObject &obj, float speed, float dt) {
         vel -= obj.up();
     }
 
-    // Nothing was pressed, so there's nothing to do.
-    if (glm::length(vel) == 0.0f) {
-        return;
-    }
-
-    obj.moveBy(speed * dt * glm::normalize(vel));
+    obj.moveBy(speed * dt * vel);
 }
 
 int main(int argc, char **argv) {
@@ -141,6 +147,9 @@ int main(int argc, char **argv) {
     });
 
     glutMotionFunc(handleMouseMotion);
+    glutMouseFunc([](int button, int state, int x, int y) {
+        mouse = glm::ivec2(x, y); //
+    });
 
     update(0);
     glutMainLoop();
