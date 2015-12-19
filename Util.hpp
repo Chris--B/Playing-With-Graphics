@@ -5,7 +5,10 @@ T as(U thing) {
     return static_cast<T>(thing);
 }
 
+namespace {
+
 float getRand(float min, float max) {
     float unit = as<float>(rand()) / RAND_MAX;
     return (max - min) * unit + min;
+}
 }

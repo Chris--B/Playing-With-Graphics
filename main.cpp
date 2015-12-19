@@ -1,6 +1,7 @@
 #include "Camera.hpp"
 #include "gl_defs.hpp"
 #include "PhysicsWorld.hpp"
+#include "Util.hpp"
 
 #include <iostream>
 
@@ -12,8 +13,20 @@ Camera camera(glm::vec3(20.0f, 10.0f, 20.0f));
 
 glm::ivec2 mouse;
 
+bool keysPressed[256] = {};
+
 constexpr int resetFrames = 60 /*fps*/ * 10 /*seconds*/;
 static int frame          = 0;
+
+// Apply WASD + QE commands to an object.
+// A DirectionalObject must have the following methods:
+//      void moveBy(glm::vec3);
+//      glm::vec3 forward(); // W and S
+//      glm::vec3 right();   // A and D
+//      glm::vec3 up();      // Q and E
+// 'forward()', 'right()', and 'up()' should be normalized.
+template <typename DirectionalObject>
+void moveFromWASDQE(DirectionalObject &obj, float speed, float dt);
 
 void update(int) {
     float dt = 1.0f / 60;
@@ -25,6 +38,8 @@ void update(int) {
         phys.init();
         frame = 0;
     }
+
+    moveFromWASDQE(camera, 15.0f, dt);
 
     phys.update(dt);
 
@@ -51,10 +66,12 @@ void resize(int width, int height) {
 }
 
 void handleKeyPress(unsigned char key, int x, int y) {
+    keysPressed[as<int>(key)] = true;
     switch (key) {
     case 27: // ESC
         glutLeaveMainLoop();
         break;
+        // TODO: Make a nice command system.
     }
 }
 
@@ -63,6 +80,39 @@ void handleMouseMotion(int x, int y) {
     int dy = -(y - mouse.y); // +y is downward in screen space.
 
     mouse = glm::vec2(x, y);
+}
+
+template <typename DirectionalObject>
+void moveFromWASDQE(DirectionalObject &obj, float speed, float dt) {
+    glm::vec3 vel = glm::vec3();
+
+    if (keysPressed['w']) {
+        vel += obj.forward();
+    }
+    if (keysPressed['s']) {
+        vel -= obj.forward();
+    }
+
+    if (keysPressed['d']) {
+        vel += obj.right();
+    }
+    if (keysPressed['a']) {
+        vel -= obj.right();
+    }
+
+    if (keysPressed['q']) {
+        vel += obj.up();
+    }
+    if (keysPressed['e']) {
+        vel -= obj.up();
+    }
+
+    // Nothing was pressed, so there's nothing to do.
+    if (glm::length(vel) == 0.0f) {
+        return;
+    }
+
+    obj.moveBy(speed * dt * glm::normalize(vel));
 }
 
 int main(int argc, char **argv) {
@@ -81,10 +131,15 @@ int main(int argc, char **argv) {
 
     glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,
                   GLUT_ACTION_GLUTMAINLOOP_RETURNS);
+    glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
 
     glutReshapeFunc(resize);
     glutDisplayFunc(render);
     glutKeyboardFunc(handleKeyPress);
+    glutKeyboardUpFunc([](unsigned char key, int, int) {
+        keysPressed[as<int>(key)] = false; //
+    });
+
     glutMotionFunc(handleMouseMotion);
 
     update(0);
