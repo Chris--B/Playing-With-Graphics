@@ -35,7 +35,7 @@ void PhysicsWorld::init() {
     // ... and some objects.
 
     // Sides of the box.
-    for (size_t i = 0; i < 6; i += 1) {
+    for (size_t i = 0; i < 1; i += 1) {
         btCollisionShape *groundShape = new btBoxShape(btVector3(50, 0, 50));
         collisionShapes.push_back(groundShape);
 
@@ -59,7 +59,7 @@ void PhysicsWorld::init() {
     }
 
     // Dynamic rigid body
-    for (size_t i = 0; i < 5; i += 1) {
+    for (size_t i = 0; i < 50; i += 1) {
         // auto colShape = new btBoxShape(btVector3(1, 1, 1));
         auto colShape = new btSphereShape(1.0f);
         collisionShapes.push_back(colShape);
