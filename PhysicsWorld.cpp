@@ -60,8 +60,8 @@ void PhysicsWorld::init() {
 
     // Dynamic rigid body
     for (size_t i = 0; i < 50; i += 1) {
-        // auto colShape = new btBoxShape(btVector3(1, 1, 1));
-        auto colShape = new btSphereShape(1.0f);
+        auto colShape = new btBoxShape(btVector3(1, 1, 1));
+        // auto colShape = new btSphereShape(1.0f);
         collisionShapes.push_back(colShape);
 
         btTransform startTransform;
@@ -71,6 +71,8 @@ void PhysicsWorld::init() {
         origin.setY(getRand(10, 20));
         origin.setZ(getRand(-20, 20));
         startTransform.setOrigin(origin);
+        startTransform.setRotation(
+            btQuaternion(getRand(0, 6), getRand(0, 6), getRand(0, 6)));
 
         float mass = 1.0f;
         btVector3 localInertia;
@@ -82,7 +84,7 @@ void PhysicsWorld::init() {
             mass, myMotionState, colShape, localInertia);
 
         btRigidBody *body = new btRigidBody(rbInfo);
-        body->setRestitution(0.7f);
+        body->setRestitution(0.3f);
 
         world->addRigidBody(body);
     }
