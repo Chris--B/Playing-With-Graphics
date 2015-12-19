@@ -1,15 +1,6 @@
+#include "Camera.hpp"
+#include "gl_defs.hpp"
 #include "PhysicsWorld.hpp"
-
-#include "glm/glm.hpp"
-#include "glm/mat4x4.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
-
-#define GLEW_STATIC
-#include "GL/glew.h"
-#include "GL/freeglut.h"
-
-#include "btBulletDynamicsCommon.h"
 
 #include <iostream>
 
@@ -17,15 +8,12 @@
 
 PhysicsWorld phys;
 
-float camAngle   = 0.0f;
-glm::vec3 camera = glm::vec3(20.0f, 10.0f, 20.0f);
-glm::vec3 center = glm::vec3(0, 0, 0);
-glm::vec3 up     = glm::vec3(0.0f, 1.0f, 0.0f);
+Camera camera(glm::vec3(20.0f, 10.0f, 20.0f));
 
 glm::ivec2 mouse;
 
-constexpr int resetFrames = 60 * 10;
-int frame                 = 0;
+constexpr int resetFrames = 60 /*fps*/ * 10 /*seconds*/;
+static int frame          = 0;
 
 void update(int) {
     float dt = 1.0f / 60;
@@ -47,8 +35,7 @@ void render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glMatrixMode(GL_MODELVIEW);
-    glm::mat4x4 lookat = glm::lookAt(camera, center, up);
-    glLoadMatrixf(glm::value_ptr(lookat));
+    glLoadMatrixf(glm::value_ptr(camera.lookAt()));
 
     phys.debugDrawWorld();
 
@@ -60,7 +47,7 @@ void resize(int width, int height) {
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(65.0, float(width) / height, 0.1, 1e5);
+    gluPerspective(45.0, float(width) / height, 0.1, 1e5);
 }
 
 void handleKeyPress(unsigned char key, int x, int y) {

@@ -1,6 +1,6 @@
 #pragma once
 
-template<typename T, typename U>
+template <typename T, typename U>
 T as(U thing) {
     return static_cast<T>(thing);
 }

@@ -1,8 +1,6 @@
 #include "btBulletDynamicsCommon.h"
 
-#define GLEW_STATIC
-#include "GL/glew.h"
-#include "GL/glut.h"
+#include "gl_defs.hpp"
 
 class GLDebugDrawer : public btIDebugDraw {
 public:
