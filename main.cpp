@@ -1,13 +1,14 @@
 #include "Camera.hpp"
 #include "gl_defs.hpp"
-#include "PhysicsWorld.hpp"
 #include "Util.hpp"
 
 #include <iostream>
 
 #include <cassert>
 
-PhysicsWorld phys;
+#include "GameWorld.hpp"
+
+GameWorld *game;
 
 Camera camera(glm::vec3(20.0f, 10.0f, 20.0f));
 
@@ -35,13 +36,14 @@ void update(int) {
     frame += 1;
 
     if (frame >= resetFrames) {
-        phys.init();
+        delete game;
+        game  = new GameWorld();
         frame = 0;
     }
 
     moveFromWASDQE(camera, 15.0f, dt);
 
-    phys.update(dt);
+    game->update(dt);
 
     glutPostRedisplay();
 }
@@ -52,7 +54,12 @@ void render() {
     glMatrixMode(GL_MODELVIEW);
     glLoadMatrixf(glm::value_ptr(camera.lookAt()));
 
-    phys.debugDrawWorld();
+    auto *world = game->world();
+    world->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+    world->debugDrawWorld();
+
+    // world->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawAabb);
+    // world->debugDrawWorld();
 
     glFlush();
 }
@@ -123,7 +130,8 @@ void moveFromWASDQE(DirectionalObject &obj, float speed, float dt) {
 
 int main(int argc, char **argv) {
     srand(24);
-    phys.init();
+
+    game = new GameWorld();
 
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DEPTH | GLUT_RGBA);

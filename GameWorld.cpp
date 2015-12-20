@@ -1,33 +1,21 @@
-#include "PhysicsWorld.hpp"
+#include "GameWorld.hpp"
 
 #include "DebugDrawer.hpp"
 #include "Util.hpp"
 
-#include <iostream>
+void GameWorld::update(float dt) { m_collision.world->stepSimulation(dt); }
 
-#include <cassert>
+void GameWorld::CollisionMembers::init() {
+    pairCache  = new btDbvtBroadphase();
+    config     = new btDefaultCollisionConfiguration();
+    dispatcher = new btCollisionDispatcher(config);
+    solver     = new btSequentialImpulseConstraintSolver();
+    world = new btDiscreteDynamicsWorld(dispatcher, pairCache, solver, config);
 
-#include <iostream>
-
-std::ostream &operator<<(std::ostream &os, const btVector3 &vec) {
-    return os << vec.getX() << ", " << vec.getY() << ", " << vec.getZ();
-}
-
-void PhysicsWorld::init() {
-    valid = true;
-
-    overlappingPairCache = new btDbvtBroadphase();
-    config               = new btDefaultCollisionConfiguration();
-    dispatcher           = new btCollisionDispatcher(config);
-    solver               = new btSequentialImpulseConstraintSolver();
-    world                = new btDiscreteDynamicsWorld(
-        dispatcher, overlappingPairCache, solver, config);
-
-    // Setup wireframe debugging view.
-    auto debugDrawer = new GLDebugDrawer();
-    debugDrawer->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
-    // debugDrawer->setDebugMode(btIDebugDraw::DBG_DrawAabb);
-    world->setDebugDrawer(debugDrawer);
+    auto debug = new GLDebugDrawer();
+    debug->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
+    debug->setDebugMode(btIDebugDraw::DBG_DrawAabb);
+    world->setDebugDrawer(debug);
 
     // Initialize the world with gravity
     world->setGravity(btVector3(0, -10, 0));
@@ -37,7 +25,7 @@ void PhysicsWorld::init() {
     // Sides of the box.
     for (size_t i = 0; i < 1; i += 1) {
         btCollisionShape *groundShape = new btBoxShape(btVector3(50, 0, 50));
-        collisionShapes.push_back(groundShape);
+        // collisionShapes.push_back(groundShape);
 
         btTransform groundTransform;
         groundTransform.setIdentity();
@@ -62,7 +50,7 @@ void PhysicsWorld::init() {
     for (size_t i = 0; i < 50; i += 1) {
         auto colShape = new btBoxShape(btVector3(1, 1, 1));
         // auto colShape = new btSphereShape(1.0f);
-        collisionShapes.push_back(colShape);
+        // collisionShapes.push_back(colShape);
 
         btTransform startTransform;
         startTransform.setIdentity();
@@ -90,12 +78,7 @@ void PhysicsWorld::init() {
     }
 }
 
-void PhysicsWorld::deinit() {
-    if (!valid) {
-        return;
-    }
-    valid = false;
-
+void GameWorld::CollisionMembers::deinit() {
     // Remove the rigid bodies and delete them.
     for (int i = world->getNumCollisionObjects() - 1; i >= 0; i -= 1) {
         assert(i < world->getNumCollisionObjects());
@@ -110,47 +93,10 @@ void PhysicsWorld::deinit() {
         delete obj;
     }
 
-    // Delete the collision shapes.
-    for (int i = 0; i < collisionShapes.size(); i += 1) {
-        delete collisionShapes[i];
-        collisionShapes[i] = nullptr;
-    }
-
     // Delete everything else too.
     delete world;
     delete solver;
-    delete overlappingPairCache;
+    delete pairCache;
     delete dispatcher;
     delete config;
-}
-
-void PhysicsWorld::dump() {
-    forEach([](int index, btVector3 o) {
-        std::cout << "#" << index << ": " << o.getX() << ", " << o.getY()
-                  << ", " << o.getZ() << ", "
-                  << "\t\t";
-    });
-    std::cout << std::endl;
-}
-
-// TODO: I think we can do this with MotionStates.
-void PhysicsWorld::forEach(ForEachFunc func) {
-    if (!valid) {
-        return;
-    }
-    // Print the location of each object.
-    for (int i = 0; i < world->getNumCollisionObjects(); i += 1) {
-        btCollisionObject *obj = world->getCollisionObjectArray()[i];
-        btRigidBody *body      = btRigidBody::upcast(obj);
-
-        btTransform trans;
-        // Why?
-        if (body && body->getMotionState()) {
-            body->getMotionState()->getWorldTransform(trans);
-        } else {
-            trans = obj->getWorldTransform();
-        }
-        auto o = trans.getOrigin();
-        func(i, o);
-    }
 }
