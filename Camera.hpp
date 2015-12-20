@@ -1,3 +1,5 @@
+#pragma once
+
 #include "gl_defs.hpp"
 
 class Camera {
