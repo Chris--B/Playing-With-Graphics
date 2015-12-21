@@ -53,6 +53,9 @@ FILE(GLOB SOURCE_FILES "*.cpp")
 add_executable(Test
                ${HEADER_FILES}
                ${SOURCE_FILES}
+
+               tinyobjloader/tiny_obj_loader.cc
+               tinyobjloader/tiny_obj_loader.h
                )
 target_link_libraries(Test
                       "${OPENGL_LIBRARIES}"
