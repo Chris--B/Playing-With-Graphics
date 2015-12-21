@@ -120,8 +120,11 @@ void update(int) {
 void render() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    glm::mat4x4 projection = camera.lookAt();
     glMatrixMode(GL_MODELVIEW);
-    glLoadMatrixf(glm::value_ptr(camera.lookAt()));
+    glLoadMatrixf(glm::value_ptr(projection));
+
+    game->draw(projection);
 
     auto *world = game->world();
     world->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
@@ -223,6 +226,7 @@ void initOpenGL(int *argcp, char **argv) {
     constexpr float shade = 0.85f;
     glClearColor(shade, shade, shade, 1.0f);
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
 
     glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,
                   GLUT_ACTION_GLUTMAINLOOP_RETURNS);

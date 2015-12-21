@@ -13,6 +13,8 @@ public:
 
     void update(float dt);
 
+    void draw(const glm::mat4x4 &projection) const;
+
     btDiscreteDynamicsWorld *world() { return m_collision.world; }
 
     void addEntity(Entity *entity);

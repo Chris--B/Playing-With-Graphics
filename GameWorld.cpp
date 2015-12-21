@@ -4,6 +4,45 @@
 
 void GameWorld::update(float dt) { m_collision.world->stepSimulation(dt); }
 
+void GameWorld::draw(const glm::mat4x4 &projection) const {
+    for (auto *entity : m_entities) {
+        glm::mat4x4 modelview;
+        entity->phys_obj->getWorldTransform().getOpenGLMatrix(
+            glm::value_ptr(modelview));
+        glm::mat4x4 PMv_matrix = projection * modelview;
+        glPushMatrix();
+        {
+            glLoadMatrixf(glm::value_ptr(PMv_matrix));
+
+            switch (entity->phys_obj->getCollisionShape()->getShapeType()) {
+
+            case BOX_SHAPE_PROXYTYPE: {
+                glColor3f(1.0f, 0.0f, 1.0f);
+
+                auto *box = dynamic_cast<btBoxShape *>(
+                    entity->phys_obj->getCollisionShape());
+                assert(box != nullptr);
+                auto size = 2.0f * box->getHalfExtentsWithoutMargin();
+
+                glScalef(size.getX(), size.getY(), size.getZ());
+                glutSolidCube(1.0);
+            } break;
+
+            case SPHERE_SHAPE_PROXYTYPE: {
+                glColor3f(1.0f, 1.0f, 0.0f);
+                glutSolidSphere(1.0, 5, 5);
+            } break;
+
+            default:
+                std::cout
+                    << entity->phys_obj->getCollisionShape()->getShapeType()
+                    << std::endl;
+            }
+        }
+        glPopMatrix();
+    }
+}
+
 void GameWorld::addEntity(Entity *entity) {
     m_entities.push_back(entity);
 
@@ -12,7 +51,7 @@ void GameWorld::addEntity(Entity *entity) {
     m_collision.world->addRigidBody(body);
 
     // Keep the m_entities vector synced with our collision world.
-    assert(m_entities.size() != m_collision.world->getNumCollisionObjects()
+    assert(m_entities.size() == m_collision.world->getNumCollisionObjects()
            && "Are you adding to m_entities or m_collision.world without "
               "GameWorld::addEntity?");
 }
