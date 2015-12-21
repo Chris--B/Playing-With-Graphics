@@ -6,6 +6,9 @@ class btCollisionObject;
 
 class Entity {
 public:
+    Entity() = default;
+    ~Entity() = default;
+
     void render() const;
 
     // TODO: I'm lazy and don't want to write a bunch of boilerplate yet

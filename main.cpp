@@ -4,6 +4,7 @@
 
 std::unique_ptr<GameWorld> game;
 btSphereShape ballShape = btSphereShape(0.2f);
+btBoxShape boxShape = btBoxShape(btVector3(1, 1, 1));
 
 Camera camera(glm::vec3(20.0f, 10.0f, 20.0f));
 
@@ -38,7 +39,66 @@ btRigidBody *makeBall(float mass, const btVector3 &pos) {
 
     auto *body = new btRigidBody(rbInfo);
     assert(body != nullptr);
+    body->setRestitution(0.3f);
+    body->setFriction(1.0f);
+    body->setRollingFriction(1.0f);
     return body;
+}
+
+void initScene() {
+    game = std::make_unique<GameWorld>();
+
+    // Add a ground platform
+    {
+        auto *groundShape = new btBoxShape(btVector3(200, 1, 200));
+        btVector3 inertia;
+        groundShape->calculateLocalInertia(0.0, inertia);
+
+        auto *motionState = new btDefaultMotionState();
+        auto rbInfo       = btRigidBody::btRigidBodyConstructionInfo(
+            0.0f, motionState, groundShape, inertia);
+
+        Entity *ground   = new Entity();
+        ground->phys_obj = std::make_unique<btRigidBody>(rbInfo);
+        ground->phys_obj->setRestitution(1.0f);
+        ground->phys_obj->setFriction(10.0f);
+
+        game->addEntity(ground);
+    }
+
+    // Add some cubes
+    for (size_t i = 0; i < 100; i += 1) {
+        btTransform transform;
+        transform.setIdentity();
+
+        btVector3 pos;
+        pos.setX(getRand(-20, 20));
+        pos.setY(getRand(10, 20));
+        pos.setZ(getRand(-20, 20));
+        transform.setOrigin(pos);
+
+        constexpr float PI = 3.14159f;
+        float yaw          = getRand(-PI, PI);
+        float pitch        = getRand(-PI, PI);
+        float roll         = getRand(-PI, PI);
+        transform.setRotation(btQuaternion(yaw, pitch, roll));
+
+        const float mass = 1.0f;
+        btVector3 inertia;
+        ballShape.calculateLocalInertia(mass, inertia);
+
+        auto *motionState = new btDefaultMotionState(transform);
+        auto rbInfo       = btRigidBody::btRigidBodyConstructionInfo(
+            mass, motionState, &boxShape, inertia);
+
+        Entity *cube   = new Entity();
+        cube->phys_obj = std::make_unique<btRigidBody>(rbInfo);
+        cube->phys_obj->getWorldTransform().setRotation(
+            btQuaternion(getRand(0, 6), getRand(0, 6), getRand(0, 6)));
+        cube->phys_obj->setRestitution(0.3f);
+
+        game->addEntity(cube);
+    }
 }
 
 void update(int) {
@@ -108,8 +168,7 @@ void handleMouseClick(int button, int state, int x, int y) {
     if (state == GLUT_DOWN) {
         switch (button) {
         case GLUT_RIGHT_BUTTON: {
-            auto *body
-                = makeBall(1e-2f, glm2bt(camera.pos()));
+            auto *body = makeBall(1e-2f, glm2bt(camera.pos()));
             body->setLinearVelocity(glm2bt(camera.forward()));
             game->world()->addRigidBody(body);
         } break;
@@ -183,9 +242,8 @@ void initOpenGL(int *argcp, char **argv) {
 int main(int argc, char **argv) {
     srand(24);
 
-    game = std::make_unique<GameWorld>();
-
     initOpenGL(&argc, argv);
+    initScene();
 
     update(0);
     glutMainLoop();

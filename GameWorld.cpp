@@ -4,6 +4,21 @@
 
 void GameWorld::update(float dt) { m_collision.world->stepSimulation(dt); }
 
+void GameWorld::addEntity(Entity *entity) {
+    m_entities.push_back(entity);
+
+    auto body = btRigidBody::upcast(entity->phys_obj.get());
+    assert(body != nullptr);
+    m_collision.world->addRigidBody(body);
+
+    // Keep the m_entities vector synced with our collision world.
+    assert(m_entities.size() != m_collision.world->getNumCollisionObjects()
+           && "Are you adding to m_entities or m_collision.world without "
+              "GameWorld::addEntity?");
+}
+
+// ========== Physics Engine ==================================================
+
 void GameWorld::CollisionMembers::init() {
     pairCache  = new btDbvtBroadphase();
     config     = new btDefaultCollisionConfiguration();
@@ -16,65 +31,7 @@ void GameWorld::CollisionMembers::init() {
     world->setDebugDrawer(debug);
 
     // Initialize the world with gravity
-    world->setGravity(btVector3(0, -10, 0));
-
-    // ... and some objects.
-
-    // Sides of the box.
-    for (size_t i = 0; i < 1; i += 1) {
-        btCollisionShape *groundShape = new btBoxShape(btVector3(50, 10, 50));
-        // collisionShapes.push_back(groundShape);
-
-        btTransform groundTransform;
-        groundTransform.setIdentity();
-        groundTransform.setOrigin(btVector3(0, -5, 0));
-
-        float mass = 0.0f;
-
-        btVector3 localInertia;
-
-        // Using motionstate is optional; it provides interpolation capabilities
-        // and only syncronizes 'active' objects
-        auto *myMotionState = new btDefaultMotionState(groundTransform);
-        auto rbInfo         = btRigidBody::btRigidBodyConstructionInfo(
-            mass, myMotionState, groundShape, localInertia);
-
-        auto *body = new btRigidBody(rbInfo);
-        body->setRestitution(0.5);
-
-        world->addRigidBody(body);
-    }
-
-    // Dynamic rigid body
-    for (size_t i = 0; i < 50; i += 1) {
-        auto colShape = new btBoxShape(btVector3(1, 1, 1));
-        // auto colShape = new btSphereShape(1.0f);
-        // collisionShapes.push_back(colShape);
-
-        btTransform startTransform;
-        startTransform.setIdentity();
-        btVector3 origin;
-        origin.setX(getRand(-20, 20));
-        origin.setY(getRand(10, 20));
-        origin.setZ(getRand(-20, 20));
-        startTransform.setOrigin(origin);
-        startTransform.setRotation(
-            btQuaternion(getRand(0, 6), getRand(0, 6), getRand(0, 6)));
-
-        float mass = 1.0f;
-        btVector3 localInertia;
-        colShape->calculateLocalInertia(mass, localInertia);
-
-        // Same as before, with motionstate
-        auto *myMotionState = new btDefaultMotionState(startTransform);
-        auto rbInfo         = btRigidBody::btRigidBodyConstructionInfo(
-            mass, myMotionState, colShape, localInertia);
-
-        btRigidBody *body = new btRigidBody(rbInfo);
-        body->setRestitution(0.3f);
-
-        world->addRigidBody(body);
-    }
+    world->setGravity(btVector3(0, -9.81f, 0));
 }
 
 void GameWorld::CollisionMembers::deinit() {

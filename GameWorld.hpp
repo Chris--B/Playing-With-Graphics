@@ -2,6 +2,9 @@
 
 #include "Camera.hpp"
 #include "CommonDefs.hpp"
+#include "Entity.hpp"
+
+#include <vector>
 
 class GameWorld {
 public:
@@ -12,9 +15,12 @@ public:
 
     btDiscreteDynamicsWorld *world() { return m_collision.world; }
 
+    void addEntity(Entity *entity);
+
 private:
+    std::vector<Entity *> m_entities;
+
     // ========== Physics Engine ==============================================
-    btAlignedObjectArray<btCollisionShape *> collideables;
 
     // Instead of naming each member m_collision*, just make a namespace.
     // Except you can't do that to member variables, so make a struct intead.
