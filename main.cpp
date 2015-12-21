@@ -24,18 +24,17 @@ bool needsReset = false;
 template <typename DirectionalObject>
 void moveFromWASDQE(DirectionalObject &obj, float speed, float dt);
 
-btRigidBody *make_rigid_body(btCollisionShape *shape, float mass,
-                             const btVector3 &pos) {
+btRigidBody *makeBall(float mass, const btVector3 &pos) {
     btTransform transform;
     transform.setIdentity();
     transform.setOrigin(pos);
 
     btVector3 inertia;
-    shape->calculateLocalInertia(mass, inertia);
+    ballShape.calculateLocalInertia(mass, inertia);
 
     auto *motionState = new btDefaultMotionState(transform);
     auto rbInfo       = btRigidBody::btRigidBodyConstructionInfo(
-        mass, motionState, shape, inertia);
+        mass, motionState, &ballShape, inertia);
 
     auto *body = new btRigidBody(rbInfo);
     assert(body != nullptr);
@@ -110,7 +109,7 @@ void handleMouseClick(int button, int state, int x, int y) {
         switch (button) {
         case GLUT_RIGHT_BUTTON: {
             auto *body
-                = make_rigid_body(&ballShape, 1e-2f, glm2bt(camera.pos()));
+                = makeBall(1e-2f, glm2bt(camera.pos()));
             body->setLinearVelocity(glm2bt(camera.forward()));
             game->world()->addRigidBody(body);
         } break;
