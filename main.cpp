@@ -73,7 +73,7 @@ void initScene() {
 
         btVector3 pos;
         pos.setX(getRand(-20, 20));
-        pos.setY(getRand(10, 20));
+        pos.setY(getRand(10, 100));
         pos.setZ(getRand(-20, 20));
         transform.setOrigin(pos);
 
