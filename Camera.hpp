@@ -24,10 +24,10 @@ public:
         m_forward = glm::rotate(forward(), phi, right());
     }
 
+    glm::vec3 pos() const { return m_eye; }
+
     // These will be implemented as they are required. I leave declarations here
     // to remind me where I wanted to take this.
-
-    glm::vec3 pos() const;
 
     void moveTo(glm::vec3 eye);
 

@@ -14,7 +14,6 @@ void GameWorld::CollisionMembers::init() {
 
     auto debug = new GLDebugDrawer();
     debug->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
-    debug->setDebugMode(btIDebugDraw::DBG_DrawAabb);
     world->setDebugDrawer(debug);
 
     // Initialize the world with gravity
@@ -24,11 +23,12 @@ void GameWorld::CollisionMembers::init() {
 
     // Sides of the box.
     for (size_t i = 0; i < 1; i += 1) {
-        btCollisionShape *groundShape = new btBoxShape(btVector3(50, 0, 50));
+        btCollisionShape *groundShape = new btBoxShape(btVector3(50, 10, 50));
         // collisionShapes.push_back(groundShape);
 
         btTransform groundTransform;
         groundTransform.setIdentity();
+        groundTransform.setOrigin(btVector3(0, -5, 0));
 
         float mass = 0.0f;
 
@@ -41,7 +41,7 @@ void GameWorld::CollisionMembers::init() {
             mass, myMotionState, groundShape, localInertia);
 
         auto *body = new btRigidBody(rbInfo);
-        body->setRestitution(1.0);
+        body->setRestitution(0.5);
 
         world->addRigidBody(body);
     }

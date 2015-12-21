@@ -8,16 +8,21 @@
 
 #include "GameWorld.hpp"
 
-GameWorld *game;
+GameWorld *game = nullptr;
+
+btSphereShape ballShape = btSphereShape(0.2f);
+
+btCollisionObject *falling = nullptr;
 
 Camera camera(glm::vec3(20.0f, 10.0f, 20.0f));
 
 glm::ivec2 mouse;
+glm::vec2 window;
 
 bool keysPressed[256] = {};
 
-constexpr int resetFrames = 60 /*fps*/ * 10 /*seconds*/;
-static int frame          = 0;
+bool needsReset = false;
+
 
 // Apply WASD + QE commands to an object. Space for extra speed.
 // A DirectionalObject must have the following methods:
@@ -29,16 +34,32 @@ static int frame          = 0;
 template <typename DirectionalObject>
 void moveFromWASDQE(DirectionalObject &obj, float speed, float dt);
 
+btRigidBody *make_rigid_body(btCollisionShape *shape, float mass,
+                             const btVector3 &pos) {
+    btTransform transform;
+    transform.setIdentity();
+    transform.setOrigin(pos);
+
+    btVector3 inertia;
+    shape->calculateLocalInertia(mass, inertia);
+
+    auto *motionState = new btDefaultMotionState(transform);
+    auto rbInfo       = btRigidBody::btRigidBodyConstructionInfo(
+        mass, motionState, shape, inertia);
+
+    auto *body = new btRigidBody(rbInfo);
+    assert(body != nullptr);
+    return body;
+}
+
 void update(int) {
     float dt = 1.0f / 60;
     glutTimerFunc(1000 / 60, update, 0);
 
-    frame += 1;
-
-    if (frame >= resetFrames) {
+    if (needsReset) {
+        needsReset = false;
         delete game;
-        game  = new GameWorld();
-        frame = 0;
+        game = new GameWorld();
     }
 
     moveFromWASDQE(camera, 15.0f, dt);
@@ -65,6 +86,7 @@ void render() {
 }
 
 void resize(int width, int height) {
+    window = glm::ivec2(width, height);
     glViewport(0, 0, width, height);
 
     glMatrixMode(GL_PROJECTION);
@@ -78,6 +100,7 @@ void handleKeyPress(unsigned char key, int x, int y) {
     case 27: // ESC
         glutLeaveMainLoop();
         break;
+
         // TODO: Make a nice command system.
     }
 }
@@ -89,6 +112,22 @@ void handleMouseMotion(int x, int y) {
     camera.rotate(-1e-3f * as<float>(dx), -1e-3f * as<float>(dy));
 
     mouse = glm::vec2(x, y);
+}
+
+void handleMouseClick(int button, int state, int x, int y) {
+    mouse   = glm::ivec2(x, y);
+    auto st = glm::vec2(x, y) / window;
+
+    if (state == GLUT_DOWN) {
+        switch (button) {
+        case GLUT_RIGHT_BUTTON: {
+            auto *body
+                = make_rigid_body(&ballShape, 1.0f, glm2bt(camera.pos()));
+            body->setLinearVelocity(glm2bt(camera.forward()));
+            game->world()->addRigidBody(body);
+        } break;
+        }
+    }
 }
 
 template <typename DirectionalObject>
@@ -155,9 +194,7 @@ int main(int argc, char **argv) {
     });
 
     glutMotionFunc(handleMouseMotion);
-    glutMouseFunc([](int button, int state, int x, int y) {
-        mouse = glm::ivec2(x, y); //
-    });
+    glutMouseFunc(handleMouseClick);
 
     update(0);
     glutMainLoop();
