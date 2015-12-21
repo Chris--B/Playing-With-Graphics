@@ -1,6 +1,6 @@
 #include "btBulletDynamicsCommon.h"
 
-#include "gl_defs.hpp"
+#include "CommonDefs.hpp"
 
 class GLDebugDrawer : public btIDebugDraw {
 public:

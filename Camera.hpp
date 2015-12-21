@@ -1,6 +1,6 @@
 #pragma once
 
-#include "gl_defs.hpp"
+#include "CommonDefs.hpp"
 
 class Camera {
 public:

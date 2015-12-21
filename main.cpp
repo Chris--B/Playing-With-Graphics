@@ -1,28 +1,18 @@
 #include "Camera.hpp"
-#include "gl_defs.hpp"
-#include "Util.hpp"
-
-#include <iostream>
-
-#include <cassert>
-
+#include "CommonDefs.hpp"
 #include "GameWorld.hpp"
 
-GameWorld *game = nullptr;
-
+std::unique_ptr<GameWorld> game;
 btSphereShape ballShape = btSphereShape(0.2f);
-
-btCollisionObject *falling = nullptr;
 
 Camera camera(glm::vec3(20.0f, 10.0f, 20.0f));
 
 glm::ivec2 mouse;
-glm::vec2 window;
+glm::ivec2 window = glm::vec2(1024, 1024);
 
 bool keysPressed[256] = {};
 
 bool needsReset = false;
-
 
 // Apply WASD + QE commands to an object. Space for extra speed.
 // A DirectionalObject must have the following methods:
@@ -58,8 +48,7 @@ void update(int) {
 
     if (needsReset) {
         needsReset = false;
-        delete game;
-        game = new GameWorld();
+        game       = std::make_unique<GameWorld>();
     }
 
     moveFromWASDQE(camera, 15.0f, dt);
@@ -115,14 +104,13 @@ void handleMouseMotion(int x, int y) {
 }
 
 void handleMouseClick(int button, int state, int x, int y) {
-    mouse   = glm::ivec2(x, y);
-    auto st = glm::vec2(x, y) / window;
+    mouse = glm::ivec2(x, y);
 
     if (state == GLUT_DOWN) {
         switch (button) {
         case GLUT_RIGHT_BUTTON: {
             auto *body
-                = make_rigid_body(&ballShape, 1.0f, glm2bt(camera.pos()));
+                = make_rigid_body(&ballShape, 1e-2f, glm2bt(camera.pos()));
             body->setLinearVelocity(glm2bt(camera.forward()));
             game->world()->addRigidBody(body);
         } break;
@@ -167,19 +155,15 @@ void moveFromWASDQE(DirectionalObject &obj, float speed, float dt) {
     obj.moveBy(speed * dt * vel);
 }
 
-int main(int argc, char **argv) {
-    srand(24);
-
-    game = new GameWorld();
-
-    glutInit(&argc, argv);
+void initOpenGL(int *argcp, char **argv) {
+    glutInit(argcp, argv);
     glutInitDisplayMode(GLUT_DEPTH | GLUT_RGBA);
 
-    glutInitWindowPosition((1920 - 1024) / 4, (1080 - 1024) / 4);
     glutInitWindowSize(1024, 1024);
     glutCreateWindow("This is what it's like when worlds collide!");
 
-    glClearColor(0.7f, 0.7f, 0.7f, 1.0f);
+    constexpr float shade = 0.85f;
+    glClearColor(shade, shade, shade, 1.0f);
     glEnable(GL_DEPTH_TEST);
 
     glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,
@@ -195,6 +179,14 @@ int main(int argc, char **argv) {
 
     glutMotionFunc(handleMouseMotion);
     glutMouseFunc(handleMouseClick);
+}
+
+int main(int argc, char **argv) {
+    srand(24);
+
+    game = std::make_unique<GameWorld>();
+
+    initOpenGL(&argc, argv);
 
     update(0);
     glutMainLoop();

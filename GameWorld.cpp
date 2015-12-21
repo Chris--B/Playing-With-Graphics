@@ -1,7 +1,6 @@
 #include "GameWorld.hpp"
 
 #include "DebugDrawer.hpp"
-#include "Util.hpp"
 
 void GameWorld::update(float dt) { m_collision.world->stepSimulation(dt); }
 

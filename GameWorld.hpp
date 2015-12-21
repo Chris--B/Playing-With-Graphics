@@ -1,10 +1,7 @@
 #pragma once
 
 #include "Camera.hpp"
-#include "gl_defs.hpp"
-
-#include "btBulletCollisionCommon.h"
-#include "btBulletDynamicsCommon.h"
+#include "CommonDefs.hpp"
 
 class GameWorld {
 public:
