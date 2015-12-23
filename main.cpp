@@ -60,6 +60,7 @@ void initScene() {
 
     model = new GraphicsObject();
     model->loadObjFile("../OBJ/lost_empire/lost_empire.obj");
+    // model->loadObjFile("../OBJ/rungholt/rungholt.obj");
 
     // Add a ground platform
     {
