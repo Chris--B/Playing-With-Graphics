@@ -64,17 +64,44 @@ void initScene() {
 
     // Add a ground platform
     {
-        auto *groundShape = new btBoxShape(btVector3(200, 1, 200));
-        btVector3 inertia;
-        groundShape->calculateLocalInertia(0.0, inertia);
+        std::cout << "Loading mesh for collision." << std::endl;
+        // Load the mesh into an index vertex array.
+        auto *triVertexArray = new btTriangleIndexVertexArray();
+
+        for (const auto &shape : model->shapes) {
+            btIndexedMesh submesh;
+
+            // Triangle indices
+            submesh.m_numTriangles = as<int>(shape.mesh.indices.size()) / 3;
+            submesh.m_triangleIndexBase
+                = (unsigned char *)shape.mesh.indices.data();
+            submesh.m_triangleIndexStride = 3 * sizeof(shape.mesh.indices[0]);
+
+            // Vertex coordinates
+            submesh.m_numVertices = as<int>(shape.mesh.positions.size()) / 3;
+            submesh.m_vertexBase = (unsigned char *)shape.mesh.positions.data();
+            submesh.m_vertexStride = 3 * sizeof(shape.mesh.positions[0]);
+
+            triVertexArray->addIndexedMesh(submesh);
+        }
+        std::cout << "Done." << std::endl;
+
+        // auto *groundShape = new btBoxShape(btVector3(200, 1, 200));
+        auto *groundShape = new btBvhTriangleMeshShape(triVertexArray, true);
+        groundShape->setMargin(0.1f);
 
         auto *motionState = new btDefaultMotionState();
         auto rbInfo       = btRigidBody::btRigidBodyConstructionInfo(
-            0.0f, motionState, groundShape, inertia);
+            0.0f, motionState, groundShape);
 
         btCollisionObject *body = new btRigidBody(rbInfo);
-        body->setRestitution(1.0f);
+        body->setRestitution(0.1f);
         body->setFriction(10.0f);
+
+        // Rendering this is really, really expensive.
+        int flags = body->getCollisionFlags();
+        body->setCollisionFlags(
+            flags | btCollisionObject::CF_DISABLE_VISUALIZE_OBJECT);
 
         Entity *ground = new Entity(model, body);
 
@@ -82,13 +109,13 @@ void initScene() {
     }
 
     // Add some cubes
-    for (size_t i = 0; i < 50; i += 1) {
+    for (size_t i = 0; i < 10; i += 1) {
         btTransform transform;
         transform.setIdentity();
 
         btVector3 pos;
         pos.setX(getRand(-20, 20));
-        pos.setY(getRand(10, 100));
+        pos.setY(getRand(25, 50));
         pos.setZ(getRand(-20, 20));
         transform.setOrigin(pos);
 
@@ -194,6 +221,7 @@ void handleMouseClick(int button, int state, int x, int y) {
         case GLUT_RIGHT_BUTTON: {
             auto *body = makeBall(1e-2f, glm2bt(camera.pos()));
             body->setLinearVelocity(glm2bt(camera.forward()));
+
             game->world()->addRigidBody(body);
         } break;
         }
@@ -247,7 +275,7 @@ void initOpenGL(int *argcp, char **argv) {
     constexpr float shade = 0.85f;
     glClearColor(shade, shade, shade, 1.0f);
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
+    // glEnable(GL_CULL_FACE);
 
     glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,
                   GLUT_ACTION_GLUTMAINLOOP_RETURNS);
