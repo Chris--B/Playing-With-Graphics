@@ -56,7 +56,7 @@ void GraphicsObject::loadObjFile(const std::string &filename) {
         verts += shape.mesh.indices.size();
     }
 
-    std::cout << "Loaded " << verts << " vertices\n"           //
-              << "       " << materials.size() << " materials" //
+    std::cout << "                Loaded " << verts << " vertices\n"
+              << "                       " << materials.size() << " materials"
               << std::endl;
 }
