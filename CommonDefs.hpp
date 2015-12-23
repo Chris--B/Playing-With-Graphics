@@ -17,7 +17,6 @@
 
 // Common STL Headers
 #include <iostream> // std::ostream for overloading operator<<
-#include <memory>   // std::unique_ptr and friends
 
 #include <cassert>
 

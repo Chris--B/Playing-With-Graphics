@@ -5,6 +5,7 @@
 void GLDebugDrawer::drawLine(const btVector3 &from, const btVector3 &to,
                              const btVector3 &color) {
     glPointSize(5.0f);
+    glDisable(GL_LIGHTING);
 
     glPushMatrix();
     {

@@ -28,6 +28,9 @@ else()
     message("Cannot find GLM - GLM_INCLUDE_DIR")
 endif()
 
+# tinyobjloader
+include_directories("tinyobjloader")
+
 # BulletPhysics
 if (DEFINED BULLET_ROOT_DIR)
     include("${BULLET_ROOT_DIR}/lib/cmake/bullet/BulletConfig.cmake")

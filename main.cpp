@@ -2,9 +2,14 @@
 #include "CommonDefs.hpp"
 #include "GameWorld.hpp"
 
+#include <memory>
+
 std::unique_ptr<GameWorld> game;
 btSphereShape ballShape = btSphereShape(0.2f);
 btBoxShape boxShape = btBoxShape(btVector3(1, 1, 1));
+
+GraphicsObject *cubeModel = nullptr;
+GraphicsObject *model     = nullptr;
 
 Camera camera(glm::vec3(20.0f, 10.0f, 20.0f));
 
@@ -48,6 +53,14 @@ btRigidBody *makeBall(float mass, const btVector3 &pos) {
 void initScene() {
     game = std::make_unique<GameWorld>();
 
+    glEnable(GL_LIGHT0);
+
+    cubeModel = new GraphicsObject();
+    cubeModel->loadObjFile("../tinyobjloader/cube.obj");
+
+    model = new GraphicsObject();
+    model->loadObjFile("../OBJ/lost_empire/lost_empire.obj");
+
     // Add a ground platform
     {
         auto *groundShape = new btBoxShape(btVector3(200, 1, 200));
@@ -58,16 +71,17 @@ void initScene() {
         auto rbInfo       = btRigidBody::btRigidBodyConstructionInfo(
             0.0f, motionState, groundShape, inertia);
 
-        Entity *ground   = new Entity();
-        ground->phys_obj = std::make_unique<btRigidBody>(rbInfo);
-        ground->phys_obj->setRestitution(1.0f);
-        ground->phys_obj->setFriction(10.0f);
+        btCollisionObject *body = new btRigidBody(rbInfo);
+        body->setRestitution(1.0f);
+        body->setFriction(10.0f);
+
+        Entity *ground = new Entity(model, body);
 
         game->addEntity(ground);
     }
 
     // Add some cubes
-    for (size_t i = 0; i < 100; i += 1) {
+    for (size_t i = 0; i < 50; i += 1) {
         btTransform transform;
         transform.setIdentity();
 
@@ -91,11 +105,12 @@ void initScene() {
         auto rbInfo       = btRigidBody::btRigidBodyConstructionInfo(
             mass, motionState, &boxShape, inertia);
 
-        Entity *cube   = new Entity();
-        cube->phys_obj = std::make_unique<btRigidBody>(rbInfo);
-        cube->phys_obj->getWorldTransform().setRotation(
+        auto *body = new btRigidBody(rbInfo);
+        body->getWorldTransform().setRotation(
             btQuaternion(getRand(0, 6), getRand(0, 6), getRand(0, 6)));
-        cube->phys_obj->setRestitution(0.3f);
+        body->setRestitution(0.3f);
+
+        Entity *cube = new Entity(cubeModel, body);
 
         game->addEntity(cube);
     }
@@ -118,11 +133,16 @@ void update(int) {
 }
 
 void render() {
+    glEnable(GL_LIGHTING);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glm::mat4x4 projection = camera.lookAt();
     glMatrixMode(GL_MODELVIEW);
     glLoadMatrixf(glm::value_ptr(projection));
+
+    // Directional lighting
+    float light_dir[4] = {1.0f, 2.0f, 1.0f, 0.0f};
+    glLightfv(GL_LIGHT0, GL_POSITION, light_dir);
 
     game->draw(projection);
 
