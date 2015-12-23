@@ -33,9 +33,19 @@ void GraphicsObject::draw() const {
 void GraphicsObject::loadObjFile(const std::string &filename) {
     std::string error;
 
-    std::cout << "[tinyobjloader] Loading " << filename << std::endl;
+    std::string mtl_path = "./";
+    // Assume the MTL is located in the same directory as the OBJ.
+    auto idx = filename.rfind('/');
+    if (idx != std::string::npos) {
+        // Keep the '/' in the path
+        mtl_path = filename.substr(0, idx + 1);
+    }
+
+    std::cout << "[tinyobjloader] Loading " << filename << "\n" //
+              << "                Searching for MTL in " << mtl_path
+              << std::endl;
     bool ok = tinyobj::LoadObj(
-        shapes, materials, error, filename.c_str(), "../OBJ/lost_empire/");
+        shapes, materials, error, filename.c_str(), mtl_path.c_str());
     if (!ok) {
         std::cerr << "Error:  " << error << std::endl;
         abort();
