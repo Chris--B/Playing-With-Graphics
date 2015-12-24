@@ -151,6 +151,7 @@ void update(int) {
     if (needsReset) {
         needsReset = false;
         game       = std::make_unique<GameWorld>();
+        initScene();
     }
 
     moveFromWASDQE(camera, 15.0f, dt);
@@ -200,7 +201,9 @@ void handleKeyPress(unsigned char key, int x, int y) {
         glutLeaveMainLoop();
         break;
 
-        // TODO: Make a nice command system.
+    case 'R':
+    case 'r':
+        needsReset = true;
     }
 }
 
