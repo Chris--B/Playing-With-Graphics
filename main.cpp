@@ -11,7 +11,7 @@ btBoxShape boxShape = btBoxShape(btVector3(1, 1, 1));
 GraphicsObject *cubeModel = nullptr;
 GraphicsObject *model     = nullptr;
 
-Camera camera(glm::vec3(20.0f, 10.0f, 20.0f));
+Camera camera(glm::vec3(20.0f, 50.0f, 20.0f));
 
 glm::ivec2 mouse;
 glm::ivec2 window = glm::vec2(1024, 1024);
