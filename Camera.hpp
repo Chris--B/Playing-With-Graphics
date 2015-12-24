@@ -18,18 +18,13 @@ public:
     glm::vec3 up() const { return m_up; }
 
     void moveBy(glm::vec3 delta) { m_eye += delta; }
-
+    void moveTo(glm::vec3 pos) { m_eye = pos; }
     void rotate(float theta, float phi) {
         m_forward = glm::rotate(forward(), theta, up());
         m_forward = glm::rotate(forward(), phi, right());
     }
 
     glm::vec3 pos() const { return m_eye; }
-
-    // These will be implemented as they are required. I leave declarations here
-    // to remind me where I wanted to take this.
-
-    void moveTo(glm::vec3 eye);
 
 private:
     glm::vec3 m_eye;
