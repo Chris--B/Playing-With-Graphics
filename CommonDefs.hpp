@@ -18,7 +18,16 @@
 // Common STL Headers
 #include <iostream> // std::ostream for overloading operator<<
 
+// We really, really, really want assert to do things. Always.
+#ifdef NDEBUG
+#define REPLACE_NDEBUG NDEBUG
+#undef NDEBUG
 #include <cassert>
+#define NDEBUG REPLACE_NDEBUG
+#undef REPLACE_NDEBUG
+#else
+#include <cassert>
+#endif
 
 // Convenient Functions
 namespace {
