@@ -13,6 +13,8 @@ GraphicsObject *model     = nullptr;
 
 Camera camera(glm::vec3(20.0f, 50.0f, 20.0f));
 
+Entity *player = nullptr;
+
 glm::ivec2 mouse;
 glm::ivec2 window = glm::vec2(1024, 1024);
 
@@ -62,6 +64,26 @@ void initScene() {
     model->loadObjFile("../OBJ/lost_empire/lost_empire.obj");
     // model->loadObjFile("../OBJ/rungholt/rungholt.obj");
 
+    // Player and their hitbox
+    {
+        auto *hitboxShape = new btBoxShape(btVector3(1, 2, 1));
+        const float mass = 77.0f; // kg
+        btVector3 inertia;
+        hitboxShape->calculateLocalInertia(mass, inertia);
+
+        btTransform transform;
+        transform.setOrigin(btVector3(0, 50, 0));
+
+        auto *motionState = new btDefaultMotionState(transform);
+        auto rbInfo       = btRigidBody::btRigidBodyConstructionInfo(
+            mass, motionState, hitboxShape, inertia);
+        auto *hitbox = new btRigidBody(rbInfo);
+        hitbox->setRestitution(0.0f);
+
+        player = new Entity(cubeModel, hitbox);
+        game->addEntity(player);
+    }
+
     // Add a ground platform
     {
         std::cout << "Loading mesh for collision." << std::endl;
@@ -109,7 +131,7 @@ void initScene() {
     }
 
     // Add some cubes
-    for (size_t i = 0; i < 10; i += 1) {
+    for (size_t i = 0; i < 0; i += 1) {
         btTransform transform;
         transform.setIdentity();
 
