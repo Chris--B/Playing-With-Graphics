@@ -58,7 +58,7 @@ void initScene() {
     glEnable(GL_LIGHT0);
 
     cubeModel = new GraphicsObject();
-    cubeModel->loadObjFile("../tinyobjloader/cube.obj");
+    cubeModel->loadObjFile("../OBJ/cube/cube.obj");
 
     model = new GraphicsObject();
     model->loadObjFile("../OBJ/lost_empire/lost_empire.obj");
@@ -66,7 +66,7 @@ void initScene() {
 
     // Player and their hitbox
     {
-        auto *hitboxShape = new btBoxShape(btVector3(1, 2, 1));
+        auto *hitboxShape = new btBoxShape(btVector3(0.50f, 1.75f, 0.50f));
         const float mass = 77.0f; // kg
         btVector3 inertia;
         hitboxShape->calculateLocalInertia(mass, inertia);
@@ -78,7 +78,7 @@ void initScene() {
         auto rbInfo       = btRigidBody::btRigidBodyConstructionInfo(
             mass, motionState, hitboxShape, inertia);
         auto *hitbox = new btRigidBody(rbInfo);
-        hitbox->setRestitution(0.0f);
+        hitbox->setAngularFactor(btVector3(0, 1, 0));
 
         player = new Entity(cubeModel, hitbox);
         game->addEntity(player);
@@ -117,8 +117,6 @@ void initScene() {
             0.0f, motionState, groundShape);
 
         btCollisionObject *body = new btRigidBody(rbInfo);
-        body->setRestitution(0.1f);
-        body->setFriction(10.0f);
 
         // Rendering this is really, really expensive.
         int flags = body->getCollisionFlags();
@@ -131,7 +129,7 @@ void initScene() {
     }
 
     // Add some cubes
-    for (size_t i = 0; i < 0; i += 1) {
+    for (size_t i = 0; i < 10; i += 1) {
         btTransform transform;
         transform.setIdentity();
 
@@ -172,7 +170,14 @@ void update(int) {
 
     if (needsReset) {
         needsReset = false;
-        game       = std::make_unique<GameWorld>();
+
+        delete player;
+        player = nullptr;
+
+        delete model;
+        delete cubeModel;
+        game.release();
+
         initScene();
     }
 
@@ -301,7 +306,6 @@ void initOpenGL(int *argcp, char **argv) {
     constexpr float shade = 0.85f;
     glClearColor(shade, shade, shade, 1.0f);
     glEnable(GL_DEPTH_TEST);
-    // glEnable(GL_CULL_FACE);
 
     glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,
                   GLUT_ACTION_GLUTMAINLOOP_RETURNS);
