@@ -250,8 +250,12 @@ void handleMouseClick(int button, int state, int x, int y) {
     if (state == GLUT_DOWN) {
         switch (button) {
         case GLUT_RIGHT_BUTTON: {
-            auto *body = makeBall(1e-2f, glm2bt(camera.pos()));
-            body->setLinearVelocity(glm2bt(camera.forward()));
+            // Don't spawn in directly ontop of the camera.
+            static float dist = 5 * ballShape.getRadius();
+            // TODO: Adjust this with the user's click
+            btVector3 dir = glm2bt(camera.forward());
+            auto *body = makeBall(1.0f, glm2bt(camera.pos()) + dist * dir);
+            body->setLinearVelocity(30 /*m/s*/ * dir);
 
             game->world()->addRigidBody(body);
         } break;
