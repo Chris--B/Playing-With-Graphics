@@ -238,7 +238,7 @@ void handleMouseMotion(int x, int y) {
     int dx = x - mouse.x;
     int dy = y - mouse.y;
 
-    constexpr float sensitivity = 2.5 * -1e-3f;
+    constexpr float sensitivity = 2.5f * -1e-3f;
     camera.rotate(sensitivity * as<float>(dx), sensitivity * as<float>(dy));
 
     mouse = glm::vec2(x, y);
