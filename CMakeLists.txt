@@ -12,13 +12,26 @@ else (OPENGL_FOUND)
     set(opengl_glu_library glu32)
 endif (OPENGL_FOUND)
 
-# GLUT
-find_package(GLUT REQUIRED)
-include_directories("${GLUT_INCLUDE_DIR}")
-
 # GLEW
 find_package(GLEW REQUIRED)
 include_directories("${GLEW_INCLUDE_DIR}")
+
+# GLFW
+if (DEFINED GLFW_INCLUDE_DIR AND
+    DEFINED GLFW_LIBRARIES)
+    message("Found GLFW")
+    include_directories("${GLFW_INCLUDE_DIR}")
+else()
+    if (NOT DEFINED GLFW_INCLUDE_DIR)
+        set(GLFW_INCLUDE_DIR "GLFW_INCLUDE_DIR-NOT-FOUND")
+    endif()
+    if (NOT DEFINED GLFW_LIBRARIES)
+        set(GLFW_LIBRARIES "GLFW_LIBRARIES-NOT-FOUND")
+    endif()
+    message("Unable to find GLFW")
+endif()
+message("    GLFW_INCLUDE_DIR - ${GLFW_INCLUDE_DIR}")
+message("    GLFW_LIBRARIES - ${GLFW_LIBRARIES}")
 
 # GLM
 if (DEFINED GLM_INCLUDE_DIR)
@@ -63,7 +76,7 @@ add_executable(Test
 target_link_libraries(Test
                       "${OPENGL_LIBRARIES}"
                       "${GLUT_LIBRARIES}"
-                      "${GLEW_LIBRARIES}"
+                      "${GLFW_LIBRARIES}"
                       )
 
 foreach(LIB ${BULLET_LIBRARIES})

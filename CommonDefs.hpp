@@ -9,7 +9,7 @@
 // OpenGL
 #define GLEW_STATIC
 #include "GL/glew.h"
-#include "GL/freeglut.h"
+#include "GLFW/glfw3.h"
 
 // Bullet Physics
 #include "btBulletCollisionCommon.h"

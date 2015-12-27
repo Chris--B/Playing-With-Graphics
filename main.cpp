@@ -5,22 +5,22 @@
 #include <memory>
 
 std::unique_ptr<GameWorld> game;
+GLFWwindow *window = nullptr;
+
+glm::vec2 windowSize = glm::vec2(1024, 1024);
+
+bool keysPressed[GLFW_KEY_LAST] = {};
+bool needsReset                 = false;
+
+Camera camera(glm::vec3(20.0f, 50.0f, 20.0f));
+Entity *player = nullptr;
+
 btSphereShape ballShape = btSphereShape(0.2f);
 btBoxShape boxShape = btBoxShape(btVector3(1, 1, 1));
 
 GraphicsObject *cubeModel = nullptr;
 GraphicsObject *model     = nullptr;
 
-Camera camera(glm::vec3(20.0f, 50.0f, 20.0f));
-
-Entity *player = nullptr;
-
-glm::ivec2 mouse;
-glm::ivec2 window = glm::vec2(1024, 1024);
-
-bool keysPressed[256] = {};
-
-bool needsReset = false;
 
 // Apply WASD + QE commands to an object. Space for extra speed.
 // A DirectionalObject must have the following methods:
@@ -78,7 +78,6 @@ void initScene() {
         auto rbInfo       = btRigidBody::btRigidBodyConstructionInfo(
             mass, motionState, hitboxShape, inertia);
         auto *hitbox = new btRigidBody(rbInfo);
-        hitbox->setAngularFactor(btVector3(0, 1, 0));
 
         player = new Entity(cubeModel, hitbox);
         game->addEntity(player);
@@ -164,10 +163,7 @@ void initScene() {
     }
 }
 
-void update(int) {
-    float dt = 1.0f / 60;
-    glutTimerFunc(1000 / 60, update, 0);
-
+void update(double t, float dt) {
     if (needsReset) {
         needsReset = false;
 
@@ -181,22 +177,48 @@ void update(int) {
         initScene();
     }
 
+    // TODO: Make this a function.
+    // Scroll around with the left mouse button by clicking and dragging.
+    if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+        // TODO: Save the last position and work off of that, OR
+        // use glfwSetInputMode();
+        // The arbitrary values control the feel of the camera and should
+        // probably be loaded from a configuration file.
+        static constexpr float sensitivity = 5.0f * -1.0e1f;
+
+        double x, y;
+        glfwGetCursorPos(window, &x, &y);
+        auto st = glm::vec2(x, y) / windowSize;
+
+        auto delta = st - glm::vec2(0.5, 0.5);
+        // If it's out of bounds, ignore it.
+        if (abs(delta.x) > 0.5f) {
+            delta.x = 0.0f;
+        }
+        if (abs(delta.y) > 0.5f) {
+            delta.y = 0.0f;
+        }
+
+        // A nonlinear speed up towards the edges feels better.
+        // Odd exponents presever sign.
+        auto d3     = delta * delta * delta;
+        auto angles = sensitivity * dt * d3;
+        camera.rotate(angles.x, angles.y);
+    }
+
     moveFromWASDQE(camera, 15.0f, dt);
 
     game->update(dt);
-
-    glutPostRedisplay();
 }
 
 void render() {
-    glEnable(GL_LIGHTING);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     glm::mat4x4 projection = camera.lookAt();
     glMatrixMode(GL_MODELVIEW);
     glLoadMatrixf(glm::value_ptr(projection));
 
     // Directional lighting
+    glEnable(GL_LIGHTING);
+
     float light_dir[4] = {1.0f, 2.0f, 1.0f, 0.0f};
     glLightfv(GL_LIGHT0, GL_POSITION, light_dir);
 
@@ -208,12 +230,10 @@ void render() {
 
     // world->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawAabb);
     // world->debugDrawWorld();
-
-    glFlush();
 }
 
-void resize(int width, int height) {
-    window = glm::ivec2(width, height);
+void resize(GLFWwindow *window, int width, int height) {
+    windowSize = glm::vec2(width, height);
     glViewport(0, 0, width, height);
 
     glMatrixMode(GL_PROJECTION);
@@ -221,35 +241,12 @@ void resize(int width, int height) {
     gluPerspective(45.0, float(width) / height, 0.1, 1e5);
 }
 
-void handleKeyPress(unsigned char key, int x, int y) {
-    keysPressed[as<int>(key)] = true;
-    switch (key) {
-    case 27: // ESC
-        glutLeaveMainLoop();
-        break;
+void handleMouseClick(GLFWwindow *window, int button, int action, int mods) {
+    if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+        // Add a ball into the scene with the right mouse button.
+        if (action == GLFW_RELEASE) {
+            // button.
 
-    case 'R':
-    case 'r':
-        needsReset = true;
-    }
-}
-
-void handleMouseMotion(int x, int y) {
-    int dx = x - mouse.x;
-    int dy = y - mouse.y;
-
-    constexpr float sensitivity = 2.5f * -1e-3f;
-    camera.rotate(sensitivity * as<float>(dx), sensitivity * as<float>(dy));
-
-    mouse = glm::vec2(x, y);
-}
-
-void handleMouseClick(int button, int state, int x, int y) {
-    mouse = glm::ivec2(x, y);
-
-    if (state == GLUT_DOWN) {
-        switch (button) {
-        case GLUT_RIGHT_BUTTON: {
             // Don't spawn in directly ontop of the camera.
             static float dist = 5 * ballShape.getRadius();
             // TODO: Adjust this with the user's click
@@ -258,7 +255,6 @@ void handleMouseClick(int button, int state, int x, int y) {
             body->setLinearVelocity(30 /*m/s*/ * dir);
 
             game->world()->addRigidBody(body);
-        } break;
         }
     }
 }
@@ -267,21 +263,21 @@ template <typename DirectionalObject>
 void moveFromWASDQE(DirectionalObject &obj, float speed, float dt) {
     glm::vec3 vel = glm::vec3();
 
-    if (keysPressed[' ']) {
+    if (keysPressed[GLFW_KEY_SPACE]) {
         speed *= 5.0f;
     }
 
-    if (keysPressed['w']) {
+    if (keysPressed[GLFW_KEY_W]) {
         vel += obj.forward();
     }
-    if (keysPressed['s']) {
+    if (keysPressed[GLFW_KEY_S]) {
         vel -= obj.forward();
     }
 
-    if (keysPressed['d']) {
+    if (keysPressed[GLFW_KEY_D]) {
         vel += obj.right();
     }
-    if (keysPressed['a']) {
+    if (keysPressed[GLFW_KEY_A]) {
         vel -= obj.right();
     }
 
@@ -290,50 +286,117 @@ void moveFromWASDQE(DirectionalObject &obj, float speed, float dt) {
         vel = glm::normalize(vel);
     }
 
-    if (keysPressed['q']) {
+    if (keysPressed[GLFW_KEY_Q]) {
         vel += obj.up();
     }
-    if (keysPressed['e']) {
+    if (keysPressed[GLFW_KEY_E]) {
         vel -= obj.up();
     }
 
     obj.moveBy(speed * dt * vel);
 }
 
-void initOpenGL(int *argcp, char **argv) {
-    glutInit(argcp, argv);
-    glutInitDisplayMode(GLUT_DEPTH | GLUT_RGBA);
+static void handleKeyboard(GLFWwindow *window, int key, int scancode,
+                           int action, int mode) {
+    if (key == GLFW_KEY_UNKNOWN) {
+        std::cout << "Unknown key pressed!\n";
+        return;
+    }
 
-    glutInitWindowSize(1024, 1024);
-    glutCreateWindow("This is what it's like when worlds collide!");
+    if (action == GLFW_PRESS) {
+        keysPressed[key] = true;
+    } else if (action == GLFW_RELEASE) {
+        keysPressed[key] = false;
+    }
 
-    constexpr float shade = 0.85f;
-    glClearColor(shade, shade, shade, 1.0f);
-    glEnable(GL_DEPTH_TEST);
+    if (action == GLFW_PRESS) {
+        switch (key) {
+        case GLFW_KEY_ESCAPE:
+            glfwSetWindowShouldClose(window, GL_TRUE);
+            break;
 
-    glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE,
-                  GLUT_ACTION_GLUTMAINLOOP_RETURNS);
-    glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
-
-    glutReshapeFunc(resize);
-    glutDisplayFunc(render);
-    glutKeyboardFunc(handleKeyPress);
-    glutKeyboardUpFunc([](unsigned char key, int, int) {
-        keysPressed[as<int>(key)] = false; //
-    });
-
-    glutMotionFunc(handleMouseMotion);
-    glutMouseFunc(handleMouseClick);
+        case GLFW_KEY_R:
+            needsReset = true;
+            break;
+        }
+    }
 }
 
-int main(int argc, char **argv) {
+void initGLFW() {
+    if (!glfwInit()) {
+        std::cerr << "Bad things have happened." << std::endl;
+        abort();
+    }
+
+    // We register this callback first, incase something
+    // goes wrong with glfwCreateWindow.
+    glfwSetErrorCallback([](int error, const char *description) {
+        std::cerr << "[GLFW] Error #" << error << ": " << description
+                  << std::endl;
+    });
+
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+
+    // Set up our window and make it current.
+    window = glfwCreateWindow(as<int>(windowSize.x),
+                              as<int>(windowSize.y),
+                              "Playing with GLFW",
+                              nullptr,
+                              nullptr);
+    if (!window) {
+        glfwTerminate();
+        // This is easy to catch in debuggers.
+        abort();
+    }
+    glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
+
+    // The rest of the GLFW Callbacks
+    glfwSetKeyCallback(window, handleKeyboard);
+    glfwSetMouseButtonCallback(window, handleMouseClick);
+    glfwSetFramebufferSizeCallback(window, resize);
+}
+
+void initOpenGL() {
+    // Call this once to setup viewports, etc.
+    resize(window, as<int>(windowSize.x), as<int>(windowSize.y));
+
+    glm::vec4 color(glm::vec3(0, 178, 228) / 255.0f, 1.0f);
+    glClearColor(color.r, color.g, color.b, color.a);
+
+    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+}
+
+int main() {
+    // Chosen by fair dice roll.
     srand(24);
 
-    initOpenGL(&argc, argv);
+    initGLFW();
+    initOpenGL();
+
     initScene();
 
-    update(0);
-    glutMainLoop();
+    double oldt = glfwGetTime();
 
+    // TODO: This loop needs work.
+    while (!glfwWindowShouldClose(window)) {
+        const double t    = glfwGetTime();
+        const float dt    = as<float>(t - oldt);
+        const float ratio = as<float>(windowSize.x) / windowSize.y;
+
+        glfwPollEvents();
+        update(t, dt);
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        render();
+
+        glfwSwapBuffers(window);
+
+        oldt = t;
+    }
+
+    glfwDestroyWindow(window);
+    glfwTerminate();
     return 0;
 }
