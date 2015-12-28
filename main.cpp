@@ -346,6 +346,13 @@ void initGLFW() {
         abort();
     }
     glfwMakeContextCurrent(window);
+    // Lock us to a multiple of the screen refresh delay.
+    // On a 60 Hz monitor, this means 60 FPS
+    // ...unless each frame takes more than 1/60 seconds to render.
+    // Then it will take two 1/60 second intervals -> 30 FPS
+    // ...unless each frame takes more than 1/30 seconds to render.
+    // And so on, and so forth.
+    // TIL: 60 Hz monitor will get 60, 30, 15, or worse FPS. Not much inbetween.
     glfwSwapInterval(1);
 
     // The rest of the GLFW Callbacks
