@@ -2,7 +2,10 @@
 #include "CommonDefs.hpp"
 #include "GameWorld.hpp"
 
+#include <algorithm>
 #include <memory>
+#include <iomanip>
+#include <iostream>
 
 std::unique_ptr<GameWorld> game;
 GLFWwindow *window = nullptr;
@@ -372,6 +375,31 @@ void initOpenGL() {
     glDisable(GL_CULL_FACE);
 }
 
+void dumpOpenGLInfo() {
+    const std::string title   = "OpenGL Information";
+    const std::string version = (const char *)(glGetString(GL_VERSION));
+    const std::string renderer = (const char *)(glGetString(GL_RENDERER));
+    const std::string vendor = (const char *)(glGetString(GL_VENDOR));
+
+    const size_t prefixLen = strlen(" OpenGL Renderer: ");
+    const size_t infoPad
+        = std::max(version.size(), std::max(renderer.size(), vendor.size()));
+    const size_t width = std::max(2 + prefixLen + infoPad + 2, as<size_t>(60));
+    const std::string titlePad(width - title.size() - 5, ' ');
+
+    auto &pad = std::setw(width - infoPad + 4);
+
+    std::cout << std::setfill('-') << "\n"                                   //
+              << "/" << std::setw(width - 1) << "\\\n"                       //
+              << "| " << title << titlePad << " |\n"                         //
+              << "|" << std::setw(width - 1) << "|\n"                        //
+              << std::setfill(' ')                                           //
+              << "| OpenGL Version:  " << pad << version << " |\n"           //
+              << "| OpenGL Renderer: " << pad << renderer << " |\n"          //
+              << "| OpenGL Vendor:   " << pad << vendor << " |\n"            //
+              << "\\" << std::setfill('-') << std::setw(width - 1) << "/\n"; //
+}
+
 int main() {
     // Chosen by fair dice roll.
     srand(24);
@@ -379,6 +407,9 @@ int main() {
     initGLFW();
     glewInit();
     initOpenGL();
+
+    dumpOpenGLInfo();
+    return 0;
 
     initScene();
 
