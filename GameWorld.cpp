@@ -53,8 +53,8 @@ void GameWorld::CollisionMembers::deinit() {
     // Remove the rigid bodies and delete them.
     for (int i = world->getNumCollisionObjects() - 1; i >= 0; i -= 1) {
         assert(i < world->getNumCollisionObjects());
-        btCollisionObject *obj = world->getCollisionObjectArray()[i];
-        btRigidBody *body      = btRigidBody::upcast(obj);
+        btCollisionObject *obj  = world->getCollisionObjectArray()[i];
+        btRigidBody *      body = btRigidBody::upcast(obj);
 
         if (body && body->getMotionState()) {
             delete body->getMotionState();

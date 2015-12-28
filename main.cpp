@@ -3,12 +3,12 @@
 #include "GameWorld.hpp"
 
 #include <algorithm>
-#include <memory>
 #include <iomanip>
 #include <iostream>
+#include <memory>
 
 std::unique_ptr<GameWorld> game;
-GLFWwindow *window = nullptr;
+GLFWwindow *               window = nullptr;
 
 glm::vec2 windowSize = glm::vec2(1024, 1024);
 
@@ -44,7 +44,7 @@ btRigidBody *makeBall(float mass, const btVector3 &pos) {
     ballShape.calculateLocalInertia(mass, inertia);
 
     auto *motionState = new btDefaultMotionState(transform);
-    auto rbInfo       = btRigidBody::btRigidBodyConstructionInfo(
+    auto  rbInfo      = btRigidBody::btRigidBodyConstructionInfo(
         mass, motionState, &ballShape, inertia);
 
     auto *body = new btRigidBody(rbInfo);
@@ -71,14 +71,14 @@ void initScene() {
     {
         auto *hitboxShape = new btBoxShape(btVector3(0.50f, 1.75f, 0.50f));
         const float mass = 77.0f; // kg
-        btVector3 inertia;
+        btVector3   inertia;
         hitboxShape->calculateLocalInertia(mass, inertia);
 
         btTransform transform;
         transform.setOrigin(btVector3(0, 50, 0));
 
         auto *motionState = new btDefaultMotionState(transform);
-        auto rbInfo       = btRigidBody::btRigidBodyConstructionInfo(
+        auto  rbInfo      = btRigidBody::btRigidBodyConstructionInfo(
             mass, motionState, hitboxShape, inertia);
         auto *hitbox = new btRigidBody(rbInfo);
 
@@ -115,7 +115,7 @@ void initScene() {
         groundShape->setMargin(0.1f);
 
         auto *motionState = new btDefaultMotionState();
-        auto rbInfo       = btRigidBody::btRigidBodyConstructionInfo(
+        auto  rbInfo      = btRigidBody::btRigidBodyConstructionInfo(
             0.0f, motionState, groundShape);
 
         btCollisionObject *body = new btRigidBody(rbInfo);
@@ -141,18 +141,18 @@ void initScene() {
         pos.setZ(getRand(-20, 20));
         transform.setOrigin(pos);
 
-        constexpr float PI = 3.14159f;
-        float yaw          = getRand(-PI, PI);
-        float pitch        = getRand(-PI, PI);
-        float roll         = getRand(-PI, PI);
+        constexpr float PI    = 3.14159f;
+        float           yaw   = getRand(-PI, PI);
+        float           pitch = getRand(-PI, PI);
+        float           roll  = getRand(-PI, PI);
         transform.setRotation(btQuaternion(yaw, pitch, roll));
 
         const float mass = 1.0f;
-        btVector3 inertia;
+        btVector3   inertia;
         ballShape.calculateLocalInertia(mass, inertia);
 
         auto *motionState = new btDefaultMotionState(transform);
-        auto rbInfo       = btRigidBody::btRigidBodyConstructionInfo(
+        auto  rbInfo      = btRigidBody::btRigidBodyConstructionInfo(
             mass, motionState, &boxShape, inertia);
 
         auto *body = new btRigidBody(rbInfo);
@@ -222,7 +222,7 @@ void render() {
     // Directional lighting
     glEnable(GL_LIGHTING);
 
-    float light_dir[4] = {1.0f, 2.0f, 1.0f, 0.0f};
+    float light_dir[4] = { 1.0f, 2.0f, 1.0f, 0.0f };
     glLightfv(GL_LIGHT0, GL_POSITION, light_dir);
 
     game->draw(projection);
@@ -296,8 +296,11 @@ void moveFromWASDQE(DirectionalObject &obj, float speed, float dt) {
     obj.moveBy(speed * dt * vel);
 }
 
-static void handleKeyboard(GLFWwindow *window, int key, int scancode,
-                           int action, int mode) {
+static void handleKeyboard(GLFWwindow *window,
+                           int key,
+                           int scancode,
+                           int action,
+                           int mode) {
     if (key == GLFW_KEY_UNKNOWN) {
         std::cout << "Unknown key pressed!\n";
         return;
@@ -407,19 +410,16 @@ int main() {
     initGLFW();
     glewInit();
     initOpenGL();
-
     dumpOpenGLInfo();
-    return 0;
 
     initScene();
 
     double oldt = glfwGetTime();
-
     // TODO: This loop needs work.
     while (!glfwWindowShouldClose(window)) {
-        const double t    = glfwGetTime();
-        const float dt    = as<float>(t - oldt);
-        const float ratio = as<float>(windowSize.x) / windowSize.y;
+        const double t     = glfwGetTime();
+        const float  dt    = as<float>(t - oldt);
+        const float  ratio = as<float>(windowSize.x) / windowSize.y;
 
         glfwPollEvents();
         update(t, dt);

@@ -14,10 +14,10 @@ void GraphicsObject::draw() const {
         if (material_id != -1) {
             // glMaterialfv expects four floats, but tinyobjloader only saves
             // three.
-            float diffuse[4] = {materials[material_id].diffuse[0],
-                                materials[material_id].diffuse[1],
-                                materials[material_id].diffuse[2],
-                                1.0f};
+            float diffuse[4] = { materials[material_id].diffuse[0],
+                                 materials[material_id].diffuse[1],
+                                 materials[material_id].diffuse[2],
+                                 1.0f };
             glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, diffuse);
         }
         for (const auto &idx : shape.mesh.indices) {

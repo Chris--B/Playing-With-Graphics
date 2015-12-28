@@ -6,7 +6,8 @@ void GLDebugDrawer::reportErrorWarning(const char *warningString) {
     std::cerr << "[DebugDrawer] " << warningString << std::endl;
 }
 
-void GLDebugDrawer::drawLine(const btVector3 &from, const btVector3 &to,
+void GLDebugDrawer::drawLine(const btVector3 &from,
+                             const btVector3 &to,
                              const btVector3 &color) {
     m_lines.emplace_back(from, to, color);
 }
@@ -26,9 +27,10 @@ void GLDebugDrawer::flushLines() {
 
 // These don't get used, but we need to give them an implementation.
 #pragma region unused
-void GLDebugDrawer::drawContactPoint(const btVector3 &pointOnB,
+void           GLDebugDrawer::drawContactPoint(const btVector3 &pointOnB,
                                      const btVector3 &normalOnB,
-                                     btScalar distance, int lifeTime,
+                                     btScalar         distance,
+                                     int              lifeTime,
                                      const btVector3 &color) {
     // TODO: Figure out what this is and implement it.
     reportErrorWarning(__FUNCTION__ " is not implemented.");

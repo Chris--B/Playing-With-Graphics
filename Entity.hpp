@@ -18,7 +18,7 @@ public:
     void setGraphics(GraphicsObject *graphics) { m_graphics = graphics; }
     void setPhysBody(btCollisionObject *phys_body) { m_phys_body = phys_body; }
 
-    GraphicsObject *getGraphics() const { return m_graphics; }
+    GraphicsObject *   getGraphics() const { return m_graphics; }
     btCollisionObject *getPhysBody() const { return m_phys_body; }
 
 public:

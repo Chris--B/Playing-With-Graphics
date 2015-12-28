@@ -27,10 +27,10 @@ private:
     // Instead of naming each member m_collision*, just make a namespace.
     // Except you can't do that to member variables, so make a struct intead.
     struct CollisionMembers {
-        btBroadphaseInterface *pairCache  = nullptr;
-        btCollisionConfiguration *config  = nullptr;
-        btCollisionDispatcher *dispatcher = nullptr;
-        btConstraintSolver *solver        = nullptr;
+        btBroadphaseInterface *   pairCache  = nullptr;
+        btCollisionConfiguration *config     = nullptr;
+        btCollisionDispatcher *   dispatcher = nullptr;
+        btConstraintSolver *      solver     = nullptr;
 
         // This is the object we'll reference most.
         btDiscreteDynamicsWorld *world = nullptr;
