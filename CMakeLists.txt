@@ -76,6 +76,7 @@ add_executable(Test
 target_link_libraries(Test
                       "${OPENGL_LIBRARIES}"
                       "${GLUT_LIBRARIES}"
+                      "${GLEW_LIBRARIES}"
                       "${GLFW_LIBRARIES}"
                       )
 

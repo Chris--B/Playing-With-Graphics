@@ -118,9 +118,9 @@ void initScene() {
         btCollisionObject *body = new btRigidBody(rbInfo);
 
         // Rendering this is really, really expensive.
-        // int flags = body->getCollisionFlags();
-        // body->setCollisionFlags(
-        //    flags | btCollisionObject::CF_DISABLE_VISUALIZE_OBJECT);
+        int flags = body->getCollisionFlags();
+        body->setCollisionFlags(
+            flags | btCollisionObject::CF_DISABLE_VISUALIZE_OBJECT);
 
         Entity *ground = new Entity(model, body);
 
@@ -370,6 +370,7 @@ int main() {
     srand(24);
 
     initGLFW();
+    glewInit();
     initOpenGL();
 
     initScene();
