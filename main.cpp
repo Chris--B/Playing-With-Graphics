@@ -118,9 +118,9 @@ void initScene() {
         btCollisionObject *body = new btRigidBody(rbInfo);
 
         // Rendering this is really, really expensive.
-        int flags = body->getCollisionFlags();
-        body->setCollisionFlags(
-            flags | btCollisionObject::CF_DISABLE_VISUALIZE_OBJECT);
+        // int flags = body->getCollisionFlags();
+        // body->setCollisionFlags(
+        //    flags | btCollisionObject::CF_DISABLE_VISUALIZE_OBJECT);
 
         Entity *ground = new Entity(model, body);
 
@@ -224,12 +224,9 @@ void render() {
 
     game->draw(projection);
 
+    glDisable(GL_LIGHTING);
     auto *world = game->world();
-    world->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
     world->debugDrawWorld();
-
-    // world->getDebugDrawer()->setDebugMode(btIDebugDraw::DBG_DrawAabb);
-    // world->debugDrawWorld();
 }
 
 void resize(GLFWwindow *window, int width, int height) {
