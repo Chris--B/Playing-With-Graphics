@@ -398,3 +398,12 @@ int main() {
     glfwTerminate();
     return 0;
 }
+
+// For some laptops running NVIDIA cards and an integrated Intel card,
+// this symbol tells the driver to use the high performance card over the
+// lower performance one.
+// Nothing actually uses this symbol, so we put it down here out of the way.
+#ifdef WIN32
+#include <windows.h>
+extern "C" _declspec(dllexport) DWORD NvOptimusEnablement = 0x01;
+#endif
