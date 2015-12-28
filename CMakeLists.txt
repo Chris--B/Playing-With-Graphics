@@ -89,4 +89,4 @@ endforeach()
 
 add_custom_command(TARGET Test
                    PRE_BUILD
-                   COMMAND ${CLANG_FORMAT} -i ${HEADER_FILES} ${SOURCE_FILES})
+                   COMMAND ${CLANG_FORMAT} -sort-includes -i ${HEADER_FILES} ${SOURCE_FILES})
