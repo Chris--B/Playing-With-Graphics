@@ -442,6 +442,6 @@ int main() {
 // Nothing actually uses these symbols, so we put them down here out of the way.
 #ifdef WIN32
 #include <windows.h>
-extern "C" _declspec(dllexport) DWORD NvOptimusEnablement = 0x00;
+extern "C" _declspec(dllexport) DWORD NvOptimusEnablement = 1;
 extern "C" _declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 1;
 #endif
