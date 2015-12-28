@@ -40,5 +40,6 @@ private:
     };
 
     std::vector<Line> m_lines;
-    int m_debugMode = btIDebugDraw::DBG_DrawWireframe;
+    int m_debugMode = btIDebugDraw::DBG_DrawWireframe //
+                      | btIDebugDraw::DBG_DrawFrames;
 };

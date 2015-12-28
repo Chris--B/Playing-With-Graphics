@@ -12,7 +12,7 @@ void GLDebugDrawer::drawLine(const btVector3 &from, const btVector3 &to,
 }
 
 void GLDebugDrawer::flushLines() {
-    assert(m_lines.size() % 2 == 0);
+    // TODO: VBO or something.
     glBegin(GL_LINES);
     for (const auto &line : m_lines) {
         glColor3f(line.color.getX(), line.color.getY(), line.color.getZ());
@@ -30,6 +30,7 @@ void GLDebugDrawer::drawContactPoint(const btVector3 &pointOnB,
                                      const btVector3 &normalOnB,
                                      btScalar distance, int lifeTime,
                                      const btVector3 &color) {
+    // TODO: Figure out what this is and implement it.
     reportErrorWarning(__FUNCTION__ " is not implemented.");
     abort();
 }

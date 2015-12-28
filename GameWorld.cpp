@@ -43,7 +43,6 @@ void GameWorld::CollisionMembers::init() {
     world = new btDiscreteDynamicsWorld(dispatcher, pairCache, solver, config);
 
     auto debug = new GLDebugDrawer();
-    debug->setDebugMode(btIDebugDraw::DBG_DrawWireframe);
     world->setDebugDrawer(debug);
 
     // Initialize the world with gravity
