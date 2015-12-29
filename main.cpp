@@ -376,6 +376,19 @@ void initOpenGL() {
 
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
+
+    glDebugMessageCallback(
+        [](GLenum        source,
+           GLenum        type,
+           GLuint        id,
+           GLenum        severity,
+           GLsizei       length,
+           const GLchar *message,
+           void *        userParam) {
+            std::cerr << "[OpenGL Debug]" << severity << ": " << message
+                      << std::endl;
+        },
+        nullptr);
 }
 
 void dumpOpenGLInfo() {
