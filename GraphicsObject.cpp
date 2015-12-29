@@ -16,9 +16,10 @@ void GraphicsObject::draw() const {
             if (material_id != -1) {
                 // OpenGL expects four floats, but tinyobjloader saves three.
                 glm::vec4 ambient;
-                ambient.r = materials[material_id].ambient[0];
-                ambient.g = materials[material_id].ambient[1];
-                ambient.b = materials[material_id].ambient[2];
+                // My models don't have ambient light. Yay! Just use diffuse.
+                ambient.r = materials[material_id].diffuse[0];
+                ambient.g = materials[material_id].diffuse[1];
+                ambient.b = materials[material_id].diffuse[2];
                 ambient.a = 1.0f;
                 glMaterialfv(GL_FRONT, GL_AMBIENT, glm::value_ptr(ambient));
 
