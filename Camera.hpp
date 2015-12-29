@@ -6,7 +6,7 @@ class Camera {
 public:
     Camera(glm::vec3 eye,                  //
            glm::vec3 center = glm::vec3(), //
-           glm::vec3 up = glm::vec3(0, 1, 0))
+           glm::vec3 up     = glm::vec3(0, 1, 0))
         : m_eye(eye), m_forward(center - eye), m_up(up) {
         renormalize();
     }

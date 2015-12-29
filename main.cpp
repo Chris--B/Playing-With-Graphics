@@ -15,11 +15,11 @@ glm::vec2 windowSize = glm::vec2(1024, 1024);
 bool keysPressed[GLFW_KEY_LAST] = {};
 bool needsReset                 = false;
 
-Camera camera(glm::vec3(20.0f, 50.0f, 20.0f));
+Camera  camera(glm::vec3(20.0f, 50.0f, 20.0f));
 Entity *player = nullptr;
 
 btSphereShape ballShape = btSphereShape(0.2f);
-btBoxShape boxShape = btBoxShape(btVector3(1, 1, 1));
+btBoxShape    boxShape  = btBoxShape(btVector3(1, 1, 1));
 
 GraphicsObject *cubeModel = nullptr;
 GraphicsObject *model     = nullptr;
@@ -70,7 +70,7 @@ void initScene() {
     // Player and their hitbox
     {
         auto *hitboxShape = new btBoxShape(btVector3(0.50f, 1.75f, 0.50f));
-        const float mass = 77.0f; // kg
+        const float mass  = 77.0f; // kg
         btVector3   inertia;
         hitboxShape->calculateLocalInertia(mass, inertia);
 
@@ -250,8 +250,8 @@ void handleMouseClick(GLFWwindow *window, int button, int action, int mods) {
             // Don't spawn in directly ontop of the camera.
             static float dist = 5 * ballShape.getRadius();
             // TODO: Adjust this with the user's click
-            btVector3 dir = glm2bt(camera.forward());
-            auto *body = makeBall(1.0f, glm2bt(camera.pos()) + dist * dir);
+            btVector3 dir  = glm2bt(camera.forward());
+            auto *    body = makeBall(1.0f, glm2bt(camera.pos()) + dist * dir);
             body->setLinearVelocity(30 /*m/s*/ * dir);
 
             game->world()->addRigidBody(body);
@@ -297,10 +297,10 @@ void moveFromWASDQE(DirectionalObject &obj, float speed, float dt) {
 }
 
 static void handleKeyboard(GLFWwindow *window,
-                           int key,
-                           int scancode,
-                           int action,
-                           int mode) {
+                           int         key,
+                           int         scancode,
+                           int         action,
+                           int         mode) {
     if (key == GLFW_KEY_UNKNOWN) {
         std::cout << "Unknown key pressed!\n";
         return;
@@ -379,10 +379,10 @@ void initOpenGL() {
 }
 
 void dumpOpenGLInfo() {
-    const std::string title   = "OpenGL Information";
-    const std::string version = (const char *)(glGetString(GL_VERSION));
+    const std::string title    = "OpenGL Information";
+    const std::string version  = (const char *)(glGetString(GL_VERSION));
     const std::string renderer = (const char *)(glGetString(GL_RENDERER));
-    const std::string vendor = (const char *)(glGetString(GL_VENDOR));
+    const std::string vendor   = (const char *)(glGetString(GL_VENDOR));
 
     const size_t prefixLen = strlen(" OpenGL Renderer: ");
     const size_t infoPad
@@ -442,6 +442,6 @@ int main() {
 // Nothing actually uses these symbols, so we put them down here out of the way.
 #ifdef WIN32
 #include <windows.h>
-extern "C" _declspec(dllexport) DWORD NvOptimusEnablement = 1;
+extern "C" _declspec(dllexport) DWORD NvOptimusEnablement                  = 1;
 extern "C" _declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 1;
 #endif

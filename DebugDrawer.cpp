@@ -27,7 +27,7 @@ void GLDebugDrawer::flushLines() {
 
 // These don't get used, but we need to give them an implementation.
 #pragma region unused
-void           GLDebugDrawer::drawContactPoint(const btVector3 &pointOnB,
+void GLDebugDrawer::drawContactPoint(const btVector3 &pointOnB,
                                      const btVector3 &normalOnB,
                                      btScalar         distance,
                                      int              lifeTime,
@@ -38,7 +38,7 @@ void           GLDebugDrawer::drawContactPoint(const btVector3 &pointOnB,
 }
 
 void GLDebugDrawer::draw3dText(const btVector3 &location,
-                               const char *textString) {
+                               const char *     textString) {
     reportErrorWarning(__FUNCTION__ " is not implemented.");
     abort();
 }

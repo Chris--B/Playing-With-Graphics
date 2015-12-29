@@ -26,7 +26,7 @@ public:
                                   const btVector3 &color) override;
 
     virtual void draw3dText(const btVector3 &location,
-                            const char *textString) override;
+                            const char *     textString) override;
 
     void flushLines() override;
 
