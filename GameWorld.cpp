@@ -28,9 +28,9 @@ void GameWorld::addEntity(Entity *entity) {
     m_collision.world->addRigidBody(body);
 
     // Keep the m_entities vector synced with our collision world.
-    assert(m_entities.size() == m_collision.world->getNumCollisionObjects()
-           && "Are you adding to m_entities or m_collision.world without "
-              "GameWorld::addEntity?");
+    assert(m_entities.size() == m_collision.world->getNumCollisionObjects() &&
+           "Are you adding to m_entities or m_collision.world without "
+           "GameWorld::addEntity?");
 }
 
 // ========== Physics Engine ==================================================

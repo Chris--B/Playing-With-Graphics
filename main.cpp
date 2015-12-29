@@ -97,8 +97,8 @@ void initScene() {
 
             // Triangle indices
             submesh.m_numTriangles = as<int>(shape.mesh.indices.size()) / 3;
-            submesh.m_triangleIndexBase
-                = (unsigned char *)shape.mesh.indices.data();
+            submesh.m_triangleIndexBase =
+                (unsigned char *)shape.mesh.indices.data();
             submesh.m_triangleIndexStride = 3 * sizeof(shape.mesh.indices[0]);
 
             // Vertex coordinates
@@ -122,8 +122,8 @@ void initScene() {
 
         // Rendering this is really, really expensive.
         int flags = body->getCollisionFlags();
-        body->setCollisionFlags(
-            flags | btCollisionObject::CF_DISABLE_VISUALIZE_OBJECT);
+        body->setCollisionFlags(flags |
+                                btCollisionObject::CF_DISABLE_VISUALIZE_OBJECT);
 
         Entity *ground = new Entity(model, body);
 
@@ -385,8 +385,8 @@ void dumpOpenGLInfo() {
     const std::string vendor   = (const char *)(glGetString(GL_VENDOR));
 
     const size_t prefixLen = strlen(" OpenGL Renderer: ");
-    const size_t infoPad
-        = std::max(version.size(), std::max(renderer.size(), vendor.size()));
+    const size_t infoPad =
+        std::max(version.size(), std::max(renderer.size(), vendor.size()));
     const size_t width = std::max(2 + prefixLen + infoPad + 2, as<size_t>(60));
     const std::string titlePad(width - title.size() - 5, ' ');
 
