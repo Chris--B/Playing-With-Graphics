@@ -2,6 +2,10 @@
 #include "CommonDefs.hpp"
 #include "GameWorld.hpp"
 
+#define STB_DEFINE
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 #include <algorithm>
 #include <iomanip>
 #include <iostream>
@@ -66,6 +70,9 @@ void initScene() {
     model = new GraphicsObject();
     model->loadObjFile("../OBJ/lost_empire/lost_empire.obj");
     // model->loadObjFile("../OBJ/rungholt/rungholt.obj");
+
+    void initTexture(const std::string &);
+    initTexture("../OBJ/lost_empire/lost_empire-RGBA2.png");
 
     // Player and their hitbox
     {
@@ -221,6 +228,7 @@ void render() {
 
     // Directional lighting
     glEnable(GL_LIGHTING);
+    glEnable(GL_TEXTURE_2D);
 
     float light_dir[4] = { 1.0f, 2.0f, 1.0f, 0.0f };
     glLightfv(GL_LIGHT0, GL_POSITION, light_dir);
@@ -414,6 +422,44 @@ void dumpOpenGLInfo() {
               << "| OpenGL Renderer: " << pad << renderer << " |\n"          //
               << "| OpenGL Vendor:   " << pad << vendor << " |\n"            //
               << "\\" << std::setfill('-') << std::setw(width - 1) << "/\n"; //
+}
+
+void initTexture(const std::string &filename) {
+    glChk();
+
+    int      x     = 0;
+    int      y     = 0;
+    int      depth = 0;
+    stbi_uc *data = stbi_load(filename.c_str(), &x, &y, &depth, STBI_rgb_alpha);
+    assert(data != nullptr);
+    assert(x != 0);
+    assert(y != 0);
+    assert(depth == STBI_rgb_alpha);
+
+    glEnable(GL_TEXTURE_2D);
+    glChk();
+
+    GLuint tex;
+    glGenTextures(1, &tex);
+    glChk();
+    assert(tex != 0);
+
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glChk();
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glChk();
+
+    glTexImage2D(
+        GL_TEXTURE_2D, 0, GL_RGBA8, x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    glChk();
+
+    stbi_image_free(data);
 }
 
 int main() {
