@@ -347,6 +347,8 @@ void initGLFW() {
     });
 
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
 
     // Set up our window and make it current.
     window = glfwCreateWindow(as<int>(windowSize.x),

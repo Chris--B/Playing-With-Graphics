@@ -88,8 +88,8 @@ void GraphicsObject::loadObjFile(const std::string &filename) {
 
         // Normals
         GLuint normals;
-        GLint normalIdx = glGetAttribLocation(0, // TODO: load a program!
-                                             "gl_Normal");
+        GLint  normalIdx = 2; // glGetAttribLocation(0, // TODO: load a program!
+                              //                "gl_Normal");
         glChk();
 
         glGenBuffers(1, &normals);
