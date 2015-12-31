@@ -10,13 +10,7 @@ void GameWorld::draw(const glm::mat4x4 &projection) const {
         // ... something motionstate
         entity->getPhysBody()->getWorldTransform().getOpenGLMatrix(
             glm::value_ptr(modelview));
-        glm::mat4x4 PMv_matrix = projection * modelview;
-        glPushMatrix();
-        {
-            glLoadMatrixf(glm::value_ptr(PMv_matrix));
-            entity->draw();
-        }
-        glPopMatrix();
+        entity->getGraphics()->draw(projection * modelview);
     }
 }
 

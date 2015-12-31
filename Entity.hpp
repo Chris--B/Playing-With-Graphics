@@ -12,8 +12,6 @@ public:
         : m_graphics(graphics), m_phys_body(phys_body) {}
     ~Entity() = default;
 
-    void draw() const { getGraphics()->draw(); }
-
     // Whoever allocates is responsible for cleanup. i.e. Not Us.
     void setGraphics(GraphicsObject *graphics) { m_graphics = graphics; }
     void setPhysBody(btCollisionObject *phys_body) { m_phys_body = phys_body; }

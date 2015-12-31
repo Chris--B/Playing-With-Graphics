@@ -1,6 +1,7 @@
 #include "Camera.hpp"
 #include "CommonDefs.hpp"
 #include "GameWorld.hpp"
+#include "ShaderUtils.hpp"
 
 #define STB_DEFINE
 #define STB_IMAGE_IMPLEMENTATION
@@ -60,16 +61,35 @@ btRigidBody *makeBall(float mass, const btVector3 &pos) {
 }
 
 void initScene() {
-    game = std::make_unique<GameWorld>();
-
     glEnable(GL_LIGHT0);
 
-    cubeModel = new GraphicsObject();
-    cubeModel->loadObjFile("../OBJ/cube/cube.obj");
+    game = std::make_unique<GameWorld>();
 
-    model = new GraphicsObject();
+    cubeModel = new GraphicsObject();
+    model     = new GraphicsObject();
+    {
+        GLint vert =
+            loadAndCompileShader("../glsl/simple/vert.glsl", GL_VERTEX_SHADER);
+        GLint frag = loadAndCompileShader("../glsl/simple/frag.glsl",
+                                          GL_FRAGMENT_SHADER);
+
+        GLint program = glCreateProgram();
+
+        glAttachShader(program, vert);
+        glAttachShader(program, frag);
+        // TODO: attributes?
+        auto res = linkProgram(program);
+        assert(res);
+
+        glDeleteShader(vert);
+        glDeleteShader(frag);
+
+        model->shader     = program;
+        cubeModel->shader = program;
+    }
+
+    cubeModel->loadObjFile("../OBJ/cube/cube.obj");
     model->loadObjFile("../OBJ/lost_empire/lost_empire.obj");
-    // model->loadObjFile("../OBJ/rungholt/rungholt.obj");
 
     void initTexture(const std::string &);
     initTexture("../OBJ/lost_empire/lost_empire-RGBA2.png");

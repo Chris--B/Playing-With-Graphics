@@ -3,15 +3,19 @@
 #include <iomanip>
 #include <iostream>
 
-void GraphicsObject::draw() const {
+void GraphicsObject::draw(const glm::mat4x4 &MvP) const {
     if (shapes.empty()) {
         return;
     }
 
+    glUseProgram(shader);
+    glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(MvP));
     for (auto pair : vao_pairs) {
         glBindVertexArray(pair.first);
         glDrawElements(GL_TRIANGLES, pair.second, GL_UNSIGNED_INT, nullptr);
+        glBindVertexArray(0);
     }
+    glUseProgram(0);
 }
 
 void GraphicsObject::loadObjFile(const std::string &filename) {
@@ -34,6 +38,10 @@ void GraphicsObject::loadObjFile(const std::string &filename) {
         std::cerr << "Error:  " << error << std::endl;
         abort();
     }
+
+    assert(shader != 0 &&
+           "A shader was not attached before trying to load a file.");
+    glUseProgram(shader);
 
     glChk();
     size_t verts = 0;
@@ -88,10 +96,6 @@ void GraphicsObject::loadObjFile(const std::string &filename) {
 
         // Normals
         GLuint normals;
-        GLint  normalIdx = 2; // glGetAttribLocation(0, // TODO: load a program!
-                              //                "gl_Normal");
-        glChk();
-
         glGenBuffers(1, &normals);
         glBindBuffer(GL_ARRAY_BUFFER, normals);
         glBufferData(GL_ARRAY_BUFFER,
@@ -99,7 +103,7 @@ void GraphicsObject::loadObjFile(const std::string &filename) {
                      &shape.mesh.normals[0],
                      GL_STATIC_DRAW);
         glEnableVertexAttribArray(0);
-        glVertexAttribPointer(normalIdx, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glChk();
 
         vao_pairs.emplace_back(vao, count);
