@@ -44,6 +44,9 @@ endif()
 # tinyobjloader
 include_directories("tinyobjloader")
 
+# stb
+include_directories("stb")
+
 # BulletPhysics
 if (DEFINED BULLET_ROOT_DIR)
     include("${BULLET_ROOT_DIR}/lib/cmake/bullet/BulletConfig.cmake")
