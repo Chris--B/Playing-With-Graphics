@@ -58,3 +58,32 @@ float getRand(float min, float max) {
     return (max - min) * unit + min;
 }
 }
+// OpenGL Error Checking
+#define glChk() glChk_impl(__FILE__, __LINE__)
+
+#define make_case(ERR)                                                         \
+    case ERR:                                                                  \
+        str = #ERR;                                                            \
+        break;
+
+static void glChk_impl(const char *file, int line) {
+    const char *str = nullptr;
+    switch (glGetError()) {
+        make_case(GL_INVALID_ENUM);
+        make_case(GL_INVALID_VALUE);
+        make_case(GL_INVALID_OPERATION);
+        make_case(GL_OUT_OF_MEMORY);
+        make_case(GL_STACK_UNDERFLOW);
+        make_case(GL_STACK_OVERFLOW);
+    case GL_NO_ERROR:
+        return;
+
+    default:
+        // TODO: Print the value.
+        str = "Unknown error";
+    }
+
+    std::cerr << "[OpenGL] " << file << ":" << line << " " << str << std::endl;
+    abort();
+}
+#undef make_case
