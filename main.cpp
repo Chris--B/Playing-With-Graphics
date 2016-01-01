@@ -397,6 +397,22 @@ void initGLFW() {
     glfwSetFramebufferSizeCallback(window, resize);
 }
 
+// This needs to mimic the definition of GLDEBUGPROC.
+void __stdcall oglDebugMessageCallback(GLenum        source,
+                                       GLenum        type,
+                                       GLuint        id,
+                                       GLenum        severity,
+                                       GLsizei       length,
+                                       const GLchar *message,
+                                       void *        userParam) {
+    switch (id) {
+    case 131185: // NVidia telling us where it put the vbo memory.
+        return;
+    }
+
+    std::cerr << "[OpenGL Debug] (" << id << ") " << message << std::endl;
+};
+
 void initOpenGL() {
     // Call this once to setup viewports, etc.
     resize(window, as<int>(windowSize.x), as<int>(windowSize.y));
@@ -407,18 +423,7 @@ void initOpenGL() {
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
-    glDebugMessageCallback(
-        [](GLenum        source,
-           GLenum        type,
-           GLuint        id,
-           GLenum        severity,
-           GLsizei       length,
-           const GLchar *message,
-           void *        userParam) {
-            std::cerr << "[OpenGL Debug]" << severity << ": " << message
-                      << std::endl;
-        },
-        nullptr);
+    glDebugMessageCallback(oglDebugMessageCallback, nullptr);
 }
 
 void dumpOpenGLInfo() {
