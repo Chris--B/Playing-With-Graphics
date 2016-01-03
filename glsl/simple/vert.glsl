@@ -8,18 +8,21 @@ layout(location=3) uniform vec3   sunlight;
 layout(location=0) in vec3 vertex;
 layout(location=1) in vec3 normal;
 
+layout(location=10) in vec3 ambient;
+layout(location=11) in vec3 diffuse;
+
 out vec3 color;
 
 void main() {
-    vec3 ambient = vec3(0.2);
+    vec3 ambient = 0.2 * diffuse;
 
     // TODO: Transform the normal.
     vec3 n = normalize(normal);
-    vec3 material = vec3(0.5);
+    vec3 l = normalize(sunlight);
 
     // Diffuse lighting.
-    float d = max(dot(sunlight, n), 0);
+    float d = 0.5 * max(dot(l, n), 0);
 
-    color = d * material + ambient * material;
+    color = d * diffuse + ambient * diffuse;
     gl_Position = projection * view * model * vec4(vertex, 1.0);
 }

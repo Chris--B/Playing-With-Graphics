@@ -19,6 +19,9 @@ enum {
 enum {
     vertex = 0,
     normal = 1,
+
+    ambient = 10,
+    diffuse = 11,
 };
 }
 
@@ -101,6 +104,8 @@ void GraphicsObject::loadObjFile(const std::string &filename) {
         glBindVertexArray(vao);
         glChk();
 
+        // TODO: Lots of repeating code here. Pull this out into a function.
+
         // Indices
         GLuint  ibo;
         GLsizei count = as<GLsizei>(indices);
@@ -136,6 +141,29 @@ void GraphicsObject::loadObjFile(const std::string &filename) {
 
         glEnableVertexAttribArray(Idx::normal);
         glVertexAttribPointer(Idx::normal, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glChk();
+
+        // Materials
+        // tinyobjloader doesn't store these in an easy-to-use fashion,
+        // so we make our own buffer.
+        std::vector<float> diffuse;
+        for (const auto &idx : shape.mesh.indices) {
+            int material_id = shape.mesh.material_ids[idx / 3];
+            diffuse.push_back(materials[material_id].diffuse[0]);
+            diffuse.push_back(materials[material_id].diffuse[1]);
+            diffuse.push_back(materials[material_id].diffuse[2]);
+        }
+
+        GLuint materialbo;
+        glGenBuffers(1, &materialbo);
+        glBindBuffer(GL_ARRAY_BUFFER, materialbo);
+        glBufferData(GL_ARRAY_BUFFER,
+                     sizeof(diffuse[0]) * diffuse.size(),
+                     &diffuse[0],
+                     GL_STATIC_DRAW);
+
+        glEnableVertexAttribArray(Idx::diffuse);
+        glVertexAttribPointer(Idx::diffuse, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glChk();
 
         vao_pairs.emplace_back(vao, count);
