@@ -4,16 +4,24 @@
 #include <iostream>
 
 // Organize our uniform idicies.
-namespace UniformIdx {
-
 // We hard code these into all of our shaders.
+namespace Idx {
+
+// Uniforms
 enum {
     projection = 0,
-    view = 1,
-    model = 2,
+    view       = 1,
+    model      = 2,
+    sunlight   = 3,
 };
 
+// Inputs
+enum {
+    vertex = 0,
+    normal = 1,
+};
 }
+
 
 void GraphicsObject::draw(const glm::mat4x4 &projection,
                           const glm::mat4x4 &view,
@@ -23,9 +31,10 @@ void GraphicsObject::draw(const glm::mat4x4 &projection,
     glUseProgram(shader);
 
     // TODO: These do not need to be set every frame!
-    glUniformMatrix4fv(UniformIdx::projection, 1, GL_FALSE, glm::value_ptr(projection));
-    glUniformMatrix4fv(UniformIdx::view, 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(UniformIdx::model, 1, GL_FALSE, glm::value_ptr(model));
+    glUniformMatrix4fv(
+        Idx::projection, 1, GL_FALSE, glm::value_ptr(projection));
+    glUniformMatrix4fv(Idx::view, 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(Idx::model, 1, GL_FALSE, glm::value_ptr(model));
 
     for (auto pair : vao_pairs) {
         glBindVertexArray(pair.first);
@@ -59,6 +68,10 @@ void GraphicsObject::loadObjFile(const std::string &filename) {
     assert(shader != 0 &&
            "A shader was not attached before trying to load a file.");
     glUseProgram(shader);
+
+    // TODO: This does not need to be set here.
+    float sunlight[3] = { 2.0f, 20.0f, 1.0f };
+    glUniform3fv(Idx::sunlight, 1, sunlight);
 
     glChk();
     size_t verts = 0;
@@ -108,10 +121,21 @@ void GraphicsObject::loadObjFile(const std::string &filename) {
                      &shape.mesh.positions[0],
                      GL_STATIC_DRAW);
 
-        GLint loc = glGetAttribLocation(shader, "vertex");
-        assert(loc != -1);
-        glEnableVertexAttribArray(loc);
-        glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glEnableVertexAttribArray(Idx::vertex);
+        glVertexAttribPointer(Idx::vertex, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        glChk();
+
+        // Normals
+        GLuint nbo;
+        glGenBuffers(1, &nbo);
+        glBindBuffer(GL_ARRAY_BUFFER, nbo);
+        glBufferData(GL_ARRAY_BUFFER,
+                     sizeof(shape.mesh.normals[0]) * positions,
+                     &shape.mesh.normals[0],
+                     GL_STATIC_DRAW);
+
+        glEnableVertexAttribArray(Idx::normal);
+        glVertexAttribPointer(Idx::normal, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glChk();
 
         vao_pairs.emplace_back(vao, count);

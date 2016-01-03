@@ -9,11 +9,13 @@ std::ostream &error_impl(const char *file, int line) {
 }
 
 GLint loadAndCompileShader(const std::string &filename, GLenum type) {
-    std::ifstream     file(filename);
     std::stringstream ss;
-
-    ss << file.rdbuf();
-
+    // Make sure the file is closed before we try to compile, so that
+    // the file handle isn't held open if we call abort() and need to debug.
+    {
+        std::ifstream file(filename);
+        ss << file.rdbuf();
+    }
     return compileShader(ss.str(), type);
 }
 
