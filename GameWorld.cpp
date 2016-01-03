@@ -10,7 +10,13 @@ void GameWorld::draw(const glm::mat4x4 &projection) const {
         // ... something motionstate
         entity->getPhysBody()->getWorldTransform().getOpenGLMatrix(
             glm::value_ptr(modelview));
-        entity->getGraphics()->draw(projection * modelview);
+
+        assert(!btFuzzyZero(glm::length(modelview[0])));
+        assert(!btFuzzyZero(glm::length(modelview[1])));
+        assert(!btFuzzyZero(glm::length(modelview[2])));
+        assert(!btFuzzyZero(glm::length(modelview[3])));
+
+        entity->getGraphics()->draw(modelview * projection);
     }
 }
 

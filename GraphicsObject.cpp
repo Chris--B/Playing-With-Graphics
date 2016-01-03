@@ -4,12 +4,13 @@
 #include <iostream>
 
 void GraphicsObject::draw(const glm::mat4x4 &MvP) const {
-    if (shapes.empty()) {
-        return;
-    }
+    glChk();
 
     glUseProgram(shader);
-    glUniformMatrix4fv(0, 1, GL_FALSE, glm::value_ptr(MvP));
+    GLint loc = glGetUniformLocation(shader, "MvP");
+    assert(loc != -1);
+
+    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(MvP));
     for (auto pair : vao_pairs) {
         glBindVertexArray(pair.first);
         glDrawElements(GL_TRIANGLES, pair.second, GL_UNSIGNED_INT, nullptr);
@@ -90,20 +91,11 @@ void GraphicsObject::loadObjFile(const std::string &filename) {
                      sizeof(shape.mesh.positions[0]) * positions,
                      &shape.mesh.positions[0],
                      GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glChk();
 
-        // Normals
-        GLuint normals;
-        glGenBuffers(1, &normals);
-        glBindBuffer(GL_ARRAY_BUFFER, normals);
-        glBufferData(GL_ARRAY_BUFFER,
-                     sizeof(shape.mesh.normals[0]) * positions,
-                     &shape.mesh.normals[0],
-                     GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        GLint loc = glGetAttribLocation(shader, "vertex");
+        assert(loc != -1);
+        glEnableVertexAttribArray(loc);
+        glVertexAttribPointer(loc, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
         glChk();
 
         vao_pairs.emplace_back(vao, count);
