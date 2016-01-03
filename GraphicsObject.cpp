@@ -3,25 +3,29 @@
 #include <iomanip>
 #include <iostream>
 
+// Organize our uniform idicies.
+namespace UniformIdx {
+
+// We hard code these into all of our shaders.
+enum {
+    projection = 0,
+    view = 1,
+    model = 2,
+};
+
+}
+
 void GraphicsObject::draw(const glm::mat4x4 &projection,
                           const glm::mat4x4 &view,
                           const glm::mat4x4 &model) const {
     glChk();
 
     glUseProgram(shader);
-    GLint loc = -1;
 
-    loc = glGetUniformLocation(shader, "projection");
-    assert(loc != -1);
-    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(projection));
-
-    loc = glGetUniformLocation(shader, "view");
-    assert(loc != -1);
-    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(view));
-
-    loc = glGetUniformLocation(shader, "model");
-    assert(loc != -1);
-    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(model));
+    // TODO: These do not need to be set every frame!
+    glUniformMatrix4fv(UniformIdx::projection, 1, GL_FALSE, glm::value_ptr(projection));
+    glUniformMatrix4fv(UniformIdx::view, 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(UniformIdx::model, 1, GL_FALSE, glm::value_ptr(model));
 
     for (auto pair : vao_pairs) {
         glBindVertexArray(pair.first);
