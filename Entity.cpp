@@ -1,15 +1,12 @@
 #include "Entity.hpp"
 
-void Entity::draw(const glm::mat4x4 &projection) const {
-    glm::mat4x4 modelview;
+#include "CommonDefs.hpp"
 
+void Entity::draw(const glm::mat4x4 &projection,
+                  const glm::mat4x4 &view) const {
+    glm::mat4x4 model;
     // ... something motionstate
-    m_phys_body->getWorldTransform().getOpenGLMatrix(glm::value_ptr(modelview));
+    m_phys_body->getWorldTransform().getOpenGLMatrix(glm::value_ptr(model));
 
-    assert(!btFuzzyZero(glm::length(modelview[0])));
-    assert(!btFuzzyZero(glm::length(modelview[1])));
-    assert(!btFuzzyZero(glm::length(modelview[2])));
-    assert(!btFuzzyZero(glm::length(modelview[3])));
-
-    this->getGraphics()->draw(modelview * projection);
+    this->getGraphics()->draw(projection, view, model);
 }

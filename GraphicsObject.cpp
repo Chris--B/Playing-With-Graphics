@@ -3,14 +3,26 @@
 #include <iomanip>
 #include <iostream>
 
-void GraphicsObject::draw(const glm::mat4x4 &MvP) const {
+void GraphicsObject::draw(const glm::mat4x4 &projection,
+                          const glm::mat4x4 &view,
+                          const glm::mat4x4 &model) const {
     glChk();
 
     glUseProgram(shader);
-    GLint loc = glGetUniformLocation(shader, "MvP");
-    assert(loc != -1);
+    GLint loc = -1;
 
-    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(MvP));
+    loc = glGetUniformLocation(shader, "projection");
+    assert(loc != -1);
+    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(projection));
+
+    loc = glGetUniformLocation(shader, "view");
+    assert(loc != -1);
+    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(view));
+
+    loc = glGetUniformLocation(shader, "model");
+    assert(loc != -1);
+    glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(model));
+
     for (auto pair : vao_pairs) {
         glBindVertexArray(pair.first);
         glDrawElements(GL_TRIANGLES, pair.second, GL_UNSIGNED_INT, nullptr);

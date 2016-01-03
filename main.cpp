@@ -29,6 +29,8 @@ btBoxShape    boxShape  = btBoxShape(btVector3(1, 1, 1));
 GraphicsObject *cubeModel = nullptr;
 GraphicsObject *model     = nullptr;
 
+glm::mat4x4 projection;
+
 
 // Apply WASD + QE commands to an object. Space for extra speed.
 // A DirectionalObject must have the following methods:
@@ -242,11 +244,7 @@ void update(double t, float dt) {
 }
 
 void render() {
-    glm::mat4x4 projection = camera.lookAt();
-    assert(!btFuzzyZero(glm::determinant(projection)));
-
-    glMatrixMode(GL_MODELVIEW);
-    glLoadMatrixf(glm::value_ptr(projection));
+    glm::mat4x4 view = camera.lookAt();
 
     // Directional lighting
     glEnable(GL_LIGHTING);
@@ -255,7 +253,7 @@ void render() {
     float light_dir[4] = { 1.0f, 2.0f, 1.0f, 0.0f };
     glLightfv(GL_LIGHT0, GL_POSITION, light_dir);
 
-    game->draw(projection);
+    game->draw(projection, view);
 
     glDisable(GL_LIGHTING);
     auto *world = game->world();
@@ -266,9 +264,7 @@ void resize(GLFWwindow *window, int width, int height) {
     windowSize = glm::vec2(width, height);
     glViewport(0, 0, width, height);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(45.0, float(width) / height, 0.1, 1e5);
+    projection = glm::perspective(45.0f, float(width) / height, 0.1f, 1e5f);
 }
 
 void handleMouseClick(GLFWwindow *window, int button, int action, int mods) {

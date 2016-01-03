@@ -13,7 +13,9 @@ struct GraphicsObject {
 
     std::vector<std::pair<GLuint, GLsizei>> vao_pairs;
 
-    void draw(const glm::mat4x4 &MvP) const;
+    void draw(const glm::mat4x4 &projection,
+              const glm::mat4x4 &view,
+              const glm::mat4x4 &model) const;
 
     void loadObjFile(const std::string &filename);
 };

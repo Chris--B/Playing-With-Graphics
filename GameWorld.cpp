@@ -4,9 +4,10 @@
 
 void GameWorld::update(float dt) { m_collision.world->stepSimulation(dt); }
 
-void GameWorld::draw(const glm::mat4x4 &projection) const {
+void GameWorld::draw(const glm::mat4x4 &projection,
+                     const glm::mat4x4 &view) const {
     for (auto *entity : m_entities) {
-        entity->draw(projection);
+        entity->draw(projection, view);
     }
 }
 
