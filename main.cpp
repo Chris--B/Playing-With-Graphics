@@ -243,6 +243,8 @@ void update(double t, float dt) {
 
 void render() {
     glm::mat4x4 projection = camera.lookAt();
+    assert(!btFuzzyZero(glm::determinant(projection)));
+
     glMatrixMode(GL_MODELVIEW);
     glLoadMatrixf(glm::value_ptr(projection));
 

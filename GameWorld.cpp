@@ -6,17 +6,7 @@ void GameWorld::update(float dt) { m_collision.world->stepSimulation(dt); }
 
 void GameWorld::draw(const glm::mat4x4 &projection) const {
     for (auto *entity : m_entities) {
-        glm::mat4x4 modelview;
-        // ... something motionstate
-        entity->getPhysBody()->getWorldTransform().getOpenGLMatrix(
-            glm::value_ptr(modelview));
-
-        assert(!btFuzzyZero(glm::length(modelview[0])));
-        assert(!btFuzzyZero(glm::length(modelview[1])));
-        assert(!btFuzzyZero(glm::length(modelview[2])));
-        assert(!btFuzzyZero(glm::length(modelview[3])));
-
-        entity->getGraphics()->draw(modelview * projection);
+        entity->draw(projection);
     }
 }
 

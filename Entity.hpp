@@ -19,6 +19,8 @@ public:
     GraphicsObject *   getGraphics() const { return m_graphics; }
     btCollisionObject *getPhysBody() const { return m_phys_body; }
 
+    void draw(const glm::mat4x4 &projection) const;
+
 public:
     // Multiple things might look the same.
     GraphicsObject *m_graphics = nullptr;
