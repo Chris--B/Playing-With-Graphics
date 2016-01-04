@@ -47,6 +47,35 @@ void GraphicsObject::draw(const glm::mat4x4 &projection,
     glUseProgram(0);
 }
 
+void loadBufferObject(GLint idx, const std::vector<float> &data) {
+    glChk();
+    assert(data.size() % 3 == 0 && __FUNCTION__ " expects its data as vec3s.");
+    
+    if (data.empty()) {
+        // The object we're trying to load doesn't have any data to load...
+        // So fail silently, else OpenGL tries to read through a NULL pointer.
+        return;
+    }
+
+    // We don't even need the buffer handle - the VAO does it all for us - so
+    // this isn't returned.
+    GLuint buffer;
+    glGenBuffers(1, &buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glBufferData(GL_ARRAY_BUFFER,
+                 sizeof(data[0]) * data.size(),
+                 &data[0],
+                 GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(idx);
+    glVertexAttribPointer(idx, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glChk();
+
+    glEnableVertexAttribArray(idx);
+    glVertexAttribPointer(idx, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glChk();
+}
+
 void GraphicsObject::loadObjFile(const std::string &filename) {
     std::string error;
 
@@ -104,8 +133,6 @@ void GraphicsObject::loadObjFile(const std::string &filename) {
         glBindVertexArray(vao);
         glChk();
 
-        // TODO: Lots of repeating code here. Pull this out into a function.
-
         // Indices
         GLuint  ibo;
         GLsizei count = as<GLsizei>(indices);
@@ -118,30 +145,11 @@ void GraphicsObject::loadObjFile(const std::string &filename) {
         glChk();
 
         // Vertices
-        GLuint vbo;
-        glGenBuffers(1, &vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER,
-                     sizeof(shape.mesh.positions[0]) * positions,
-                     &shape.mesh.positions[0],
-                     GL_STATIC_DRAW);
+        loadBufferObject(Idx::vertex, shape.mesh.positions);
 
-        glEnableVertexAttribArray(Idx::vertex);
-        glVertexAttribPointer(Idx::vertex, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glChk();
 
         // Normals
-        GLuint nbo;
-        glGenBuffers(1, &nbo);
-        glBindBuffer(GL_ARRAY_BUFFER, nbo);
-        glBufferData(GL_ARRAY_BUFFER,
-                     sizeof(shape.mesh.normals[0]) * positions,
-                     &shape.mesh.normals[0],
-                     GL_STATIC_DRAW);
-
-        glEnableVertexAttribArray(Idx::normal);
-        glVertexAttribPointer(Idx::normal, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glChk();
+        loadBufferObject(Idx::normal, shape.mesh.normals);
 
         // Materials
         // tinyobjloader doesn't store these in an easy-to-use fashion,
@@ -153,18 +161,7 @@ void GraphicsObject::loadObjFile(const std::string &filename) {
             diffuse.push_back(materials[material_id].diffuse[1]);
             diffuse.push_back(materials[material_id].diffuse[2]);
         }
-
-        GLuint materialbo;
-        glGenBuffers(1, &materialbo);
-        glBindBuffer(GL_ARRAY_BUFFER, materialbo);
-        glBufferData(GL_ARRAY_BUFFER,
-                     sizeof(diffuse[0]) * diffuse.size(),
-                     &diffuse[0],
-                     GL_STATIC_DRAW);
-
-        glEnableVertexAttribArray(Idx::diffuse);
-        glVertexAttribPointer(Idx::diffuse, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glChk();
+        loadBufferObject(Idx::diffuse, diffuse);
 
         vao_pairs.emplace_back(vao, count);
     }
