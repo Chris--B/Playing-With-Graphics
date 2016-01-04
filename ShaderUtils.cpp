@@ -8,6 +8,20 @@ std::ostream &error_impl(const char *file, int line) {
     return std::cerr << "[Shaders] " << file << ":" << line << " ";
 }
 
+GLint loadCompileAndLink(const std::string &folder) {
+    GLint vert = loadAndCompileShader(folder + "/vert.glsl", GL_VERTEX_SHADER);
+    GLint frag =
+        loadAndCompileShader(folder + "/frag.glsl", GL_FRAGMENT_SHADER);
+
+    GLint program = glCreateProgram();
+    glAttachShader(program, vert);
+    glAttachShader(program, frag);
+    bool ok = linkProgram(program);
+    assert(ok && "Failed to load, compile, and link shader program.");
+
+    return program;
+}
+
 GLint loadAndCompileShader(const std::string &filename, GLenum type) {
     std::stringstream ss;
     // Make sure the file is closed before we try to compile, so that

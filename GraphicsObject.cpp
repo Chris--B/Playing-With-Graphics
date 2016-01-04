@@ -1,30 +1,9 @@
 #include "GraphicsObject.hpp"
 
+#include "ShaderUtils.hpp"
+
 #include <iomanip>
 #include <iostream>
-
-// Organize our uniform idicies.
-// We hard code these into all of our shaders.
-namespace Idx {
-
-// Uniforms
-enum {
-    projection = 0,
-    view       = 1,
-    model      = 2,
-    sunlight   = 3,
-};
-
-// Inputs
-enum {
-    vertex = 0,
-    normal = 1,
-
-    ambient = 10,
-    diffuse = 11,
-};
-}
-
 
 void GraphicsObject::draw(const glm::mat4x4 &projection,
                           const glm::mat4x4 &view,
@@ -50,7 +29,7 @@ void GraphicsObject::draw(const glm::mat4x4 &projection,
 void loadBufferObject(GLint idx, const std::vector<float> &data) {
     glChk();
     assert(data.size() % 3 == 0 && __FUNCTION__ " expects its data as vec3s.");
-    
+
     if (data.empty()) {
         // The object we're trying to load doesn't have any data to load...
         // So fail silently, else OpenGL tries to read through a NULL pointer.

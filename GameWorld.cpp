@@ -1,11 +1,18 @@
 #include "GameWorld.hpp"
 
-#include "DebugDrawer.hpp"
+#include "OpenGLDebugDrawer.hpp"
+#include "ShaderUtils.hpp"
 
 void GameWorld::update(float dt) { m_collision.world->stepSimulation(dt); }
 
 void GameWorld::draw(const glm::mat4x4 &projection,
                      const glm::mat4x4 &view) const {
+    auto           drawer   = m_collision.world->getDebugDrawer();
+    GLDebugDrawer *glDrawer = dynamic_cast<GLDebugDrawer *>(drawer);
+    assert(glDrawer != nullptr && "Are you using the GLDebugDrawer?");
+    glDrawer->updateBuffers();
+    glDrawer->updateUniforms(projection, view);
+
     for (auto *entity : m_entities) {
         entity->draw(projection, view);
     }
@@ -33,7 +40,10 @@ void GameWorld::CollisionMembers::init() {
     solver     = new btSequentialImpulseConstraintSolver();
     world = new btDiscreteDynamicsWorld(dispatcher, pairCache, solver, config);
 
-    auto debug = new GLDebugDrawer();
+    GLuint vao = 0;
+    glGenVertexArrays(1, &vao);
+    GLint shader = loadCompileAndLink("../glsl/bullet-debug/");
+    auto  debug  = new GLDebugDrawer(vao, shader);
     world->setDebugDrawer(debug);
 
     // Initialize the world with gravity
