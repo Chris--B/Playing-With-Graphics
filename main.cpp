@@ -63,8 +63,6 @@ btRigidBody *makeBall(float mass, const btVector3 &pos) {
 }
 
 void initScene() {
-    glEnable(GL_LIGHT0);
-
     game = std::make_unique<GameWorld>();
 
     cubeModel = new GraphicsObject();
@@ -92,9 +90,6 @@ void initScene() {
 
     cubeModel->loadObjFile("../OBJ/cube/cube.obj");
     model->loadObjFile("../OBJ/lost_empire/lost_empire.obj");
-
-    void initTexture(const std::string &);
-    initTexture("../OBJ/lost_empire/lost_empire-RGBA2.png");
 
     // Player and their hitbox
     {
@@ -246,16 +241,8 @@ void update(double t, float dt) {
 void render() {
     glm::mat4x4 view = camera.lookAt();
 
-    // Directional lighting
-    glEnable(GL_LIGHTING);
-    glEnable(GL_TEXTURE_2D);
-
-    float light_dir[4] = { 1.0f, 2.0f, 1.0f, 0.0f };
-    glLightfv(GL_LIGHT0, GL_POSITION, light_dir);
-
     game->draw(projection, view);
 
-    glDisable(GL_LIGHTING);
     auto *world = game->world();
     world->debugDrawWorld();
 }
@@ -366,7 +353,9 @@ void initGLFW() {
 
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Set up our window and make it current.
     window = glfwCreateWindow(as<int>(windowSize.x),
@@ -395,14 +384,13 @@ void initGLFW() {
     glfwSetFramebufferSizeCallback(window, resize);
 }
 
-// This needs to mimic the definition of GLDEBUGPROC.
-void __stdcall oglDebugMessageCallback(GLenum        source,
-                                       GLenum        type,
-                                       GLuint        id,
-                                       GLenum        severity,
-                                       GLsizei       length,
-                                       const GLchar *message,
-                                       void *        userParam) {
+GLDEBUGPROC glDebugCallback = [](GLenum        source,
+                                 GLenum        type,
+                                 GLuint        id,
+                                 GLenum        severity,
+                                 GLsizei       length,
+                                 const GLchar *message,
+                                 void *        userParam) {
     switch (id) {
     case 131185: // NVidia telling us where it put the vbo memory.
         return;
@@ -421,7 +409,8 @@ void initOpenGL() {
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 
-    glDebugMessageCallback(oglDebugMessageCallback, nullptr);
+    glDebugMessageCallback(glDebugCallback, nullptr);
+    glChk();
 }
 
 void dumpOpenGLInfo() {
@@ -449,42 +438,26 @@ void dumpOpenGLInfo() {
               << "\\" << std::setfill('-') << std::setw(width - 1) << "/\n"; //
 }
 
-void initTexture(const std::string &filename) {
+void initGLEW() {
+    // Enabling this turns a particular access violation into a
+    // GL_INVALID_ENUM GL error.
+    // http://stackoverflow.com/questions/13943825/access-violation-when-using-glew-and-glfw
+    glewExperimental = GL_TRUE;
+
+    GLenum res = glewInit();
+    if (res != GLEW_OK) {
+        std::cerr << "[GLEW] Error initalizing. " << res << std::endl;
+        abort();
+    }
+
+    std::cout << glGenVertexArrays << std::endl;
+
+    // This is apparently a bug in GLEW. See above.
+    if (glGetError() != GL_INVALID_ENUM) {
+        abort();
+    }
+    // There shouldn't be an error now.
     glChk();
-
-    int      x     = 0;
-    int      y     = 0;
-    int      depth = 0;
-    stbi_uc *data = stbi_load(filename.c_str(), &x, &y, &depth, STBI_rgb_alpha);
-    assert(data != nullptr);
-    assert(x != 0);
-    assert(y != 0);
-    assert(depth == STBI_rgb_alpha);
-
-    glEnable(GL_TEXTURE_2D);
-    glChk();
-
-    GLuint tex;
-    glGenTextures(1, &tex);
-    glChk();
-    assert(tex != 0);
-
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glChk();
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-    glChk();
-
-    glTexImage2D(
-        GL_TEXTURE_2D, 0, GL_RGBA8, x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    glChk();
-
-    stbi_image_free(data);
 }
 
 int main() {
@@ -492,7 +465,7 @@ int main() {
     srand(24);
 
     initGLFW();
-    glewInit();
+    initGLEW();
     initOpenGL();
     dumpOpenGLInfo();
 
