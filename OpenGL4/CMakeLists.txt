@@ -40,6 +40,8 @@ endif()
 FILE(GLOB OPENGL4_HEADER_FILES "*.hpp")
 FILE(GLOB OPENGL4_SOURCE_FILES "*.cpp")
 
+add_definitions("-DUSE_OPENGL4")
+
 add_executable(App-OpenGL4
                ${HEADER_FILES}
                ${SOURCE_FILES}

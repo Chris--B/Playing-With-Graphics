@@ -6,7 +6,9 @@ find_package(DirectX)
 FILE(GLOB DIRECTX_HEADER_FILES "*.hpp")
 FILE(GLOB DIRECTX_SOURCE_FILES "*.cpp")
 
-add_executable(App-DirectX
+add_definitions("-DUSE_DIRECTX")
+
+add_executable(App-DirectX WIN32
                ${HEADER_FILES}
                ${SOURCE_FILES}
                ${TINYOBJ_FILES}
