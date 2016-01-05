@@ -1,48 +1,21 @@
 cmake_minimum_required(VERSION 2.8)
 
+set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
 project(BulletTest)
 
-# OpenGL
-find_package(OpenGL)
-if (OPENGL_FOUND)
-    message("Found OpenGL: ${OPENGL_LIBRARIES}")
-else (OPENGL_FOUND)
-    message("Cannot find OpenGL")
-    set(opengl_gl_library opengl32)
-    set(opengl_glu_library glu32)
-endif (OPENGL_FOUND)
+option(USE_OPENGL4 "Build a binary using OpenGL4." ON)
+option(USE_DIRECTX "Build a binary using DirectX." OFF)
+option(USE_CLANGFORMAT "Run ClangFormat on code when building." ON)
 
-# GLEW
-find_package(GLEW REQUIRED)
-include_directories("${GLEW_INCLUDE_DIR}")
-
-# GLFW
-if (DEFINED GLFW_INCLUDE_DIR AND
-    DEFINED GLFW_LIBRARIES)
-    message("Found GLFW")
-    include_directories("${GLFW_INCLUDE_DIR}")
-else()
-    if (NOT DEFINED GLFW_INCLUDE_DIR)
-        set(GLFW_INCLUDE_DIR "GLFW_INCLUDE_DIR-NOT-FOUND")
-    endif()
-    if (NOT DEFINED GLFW_LIBRARIES)
-        set(GLFW_LIBRARIES "GLFW_LIBRARIES-NOT-FOUND")
-    endif()
-    message("Unable to find GLFW")
-endif()
-message("    GLFW_INCLUDE_DIR - ${GLFW_INCLUDE_DIR}")
-message("    GLFW_LIBRARIES - ${GLFW_LIBRARIES}")
-
-# GLM
-if (DEFINED GLM_INCLUDE_DIR)
-    message("Found glm: ${GLM_INCLUDE_DIR}")
-    include_directories("${GLM_INCLUDE_DIR}")
-else()
-    message("Cannot find GLM - GLM_INCLUDE_DIR")
+if (NOT USE_OPENGL4 AND NOT USE_DIRECTX)
+    message(FATAL_ERROR "You must choose at least one graphical backend.")
 endif()
 
 # tinyobjloader
 include_directories("tinyobjloader")
+# TODO: Manage header impl files like this better.
+set(TINYOBJ_FILES "${CMAKE_SOURCE_DIR}/tinyobjloader/tiny_obj_loader.cc")
 
 # stb
 include_directories("stb")
@@ -57,39 +30,27 @@ else()
 endif()
 
 # clang-format
-find_program(CLANG_FORMAT
-             NAMES
-             clang-format
-             clang-format-3.6
-             clang-format-3.5
-             clang-format-3.4
-             )
-message("ClangFormat: ${CLANG_FORMAT}")
+if (USE_CLANGFORMAT)
+    find_program(CLANG_FORMAT
+                 NAMES
+                 clang-format
+                 clang-format-3.8
+                 clang-format-3.7)
+    if (CLANG_FORMAT MATCHES "CLANG_FORMAT-NOTFOUND")
+        message(SEND_ERROR "Unable to find ClangFormat")
+    endif()
+    message("ClangFormat: ${CLANG_FORMAT}")
+endif()
 
 FILE(GLOB HEADER_FILES "*.hpp")
 FILE(GLOB SOURCE_FILES "*.cpp")
 
-add_executable(Test
-               ${HEADER_FILES}
-               ${SOURCE_FILES}
+include_directories("${CMAKE_SOURCE_DIR}")
 
-               tinyobjloader/tiny_obj_loader.cc
-               tinyobjloader/tiny_obj_loader.h
-               )
-target_link_libraries(Test
-                      "${OPENGL_LIBRARIES}"
-                      "${GLUT_LIBRARIES}"
-                      "${GLEW_LIBRARIES}"
-                      "${GLFW_LIBRARIES}"
-                      )
+if (USE_OPENGL4)
+    add_subdirectory(OpenGL4)
+endif()
 
-foreach(LIB ${BULLET_LIBRARIES})
-    target_link_libraries(Test
-        debug "${LIB}_Debug"
-        optimized "${LIB}"
-    )
-endforeach()
-
-add_custom_command(TARGET Test
-                   PRE_BUILD
-                   COMMAND ${CLANG_FORMAT} -sort-includes -i ${HEADER_FILES} ${SOURCE_FILES})
+if (USE_DIRECTX)
+    add_subdirectory(DirectX)
+endif()

@@ -450,8 +450,6 @@ void initGLEW() {
         abort();
     }
 
-    std::cout << glGenVertexArrays << std::endl;
-
     // This is apparently a bug in GLEW. See above.
     if (glGetError() != GL_INVALID_ENUM) {
         abort();
