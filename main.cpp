@@ -68,28 +68,13 @@ void initScene() {
     cubeModel = new GraphicsObject();
     model     = new GraphicsObject();
     {
-        GLint vert =
-            loadAndCompileShader("../glsl/simple/vert.glsl", GL_VERTEX_SHADER);
-        GLint frag = loadAndCompileShader("../glsl/simple/frag.glsl",
-                                          GL_FRAGMENT_SHADER);
-
-        GLint program = glCreateProgram();
-
-        glAttachShader(program, vert);
-        glAttachShader(program, frag);
-        // TODO: attributes?
-        auto res = linkProgram(program);
-        assert(res);
-
-        glDeleteShader(vert);
-        glDeleteShader(frag);
-
+        GLint program     = loadCompileAndLink("../../glsl/simple");
         model->shader     = program;
         cubeModel->shader = program;
     }
 
-    cubeModel->loadObjFile("../OBJ/cube/cube.obj");
-    model->loadObjFile("../OBJ/lost_empire/lost_empire.obj");
+    cubeModel->loadObjFile("../../OBJ/cube/cube.obj");
+    model->loadObjFile("../../OBJ/lost_empire/lost_empire.obj");
 
     // Player and their hitbox
     {

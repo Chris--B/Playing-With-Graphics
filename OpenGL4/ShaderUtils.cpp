@@ -9,11 +9,18 @@ std::ostream &error_impl(const char *file, int line) {
 }
 
 GLint loadCompileAndLink(const std::string &folder) {
-    GLint vert = loadAndCompileShader(folder + "/vert.glsl", GL_VERTEX_SHADER);
+    // Make sure we don't try and open files like 'foo/bar//vert.glsl'.
+    std::string corrected = folder;
+    if (corrected.back() == '/') {
+        corrected.pop_back();
+    }
+    GLint vert =
+        loadAndCompileShader(corrected + "/vert.glsl", GL_VERTEX_SHADER);
     GLint frag =
-        loadAndCompileShader(folder + "/frag.glsl", GL_FRAGMENT_SHADER);
+        loadAndCompileShader(corrected + "/frag.glsl", GL_FRAGMENT_SHADER);
 
     GLint program = glCreateProgram();
+    assert(program != 0);
     glAttachShader(program, vert);
     glAttachShader(program, frag);
     bool ok = linkProgram(program);
@@ -28,6 +35,10 @@ GLint loadAndCompileShader(const std::string &filename, GLenum type) {
     // the file handle isn't held open if we call abort() and need to debug.
     {
         std::ifstream file(filename);
+        if (!file) {
+            error() << "There was an issue opening " << filename << std::endl;
+            abort();
+        }
         ss << file.rdbuf();
     }
     return compileShader(ss.str(), type);
@@ -57,15 +68,16 @@ GLint compileShader(const std::string &source, GLenum type) {
         glDeleteShader(shader);
         shader = 0;
     }
-    assert(shader != 0);
 
+    assert(glIsShader(shader) == GL_TRUE);
     return shader;
 }
 
 bool linkProgram(GLint program) {
+    assert(glIsProgram(program) == GL_TRUE);
     glLinkProgram(program);
 
-    GLint linked = GL_FALSE;
+    GLint linked;
     glGetProgramiv(program, GL_LINK_STATUS, &linked);
     if (linked == GL_FALSE) {
         GLint length = 0;
@@ -74,7 +86,8 @@ bool linkProgram(GLint program) {
         std::string log(length, '-');
         glGetProgramInfoLog(program, length, &length, &log[0]);
 
-        error() << "Shader linking went south:\n" << log << std::endl;
+        error() << "Shader linking went south: " << log << std::endl;
+        glChk();
         assert(length == log.size());
 
         return false;

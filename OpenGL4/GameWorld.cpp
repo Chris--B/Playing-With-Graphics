@@ -42,7 +42,7 @@ void GameWorld::CollisionMembers::init() {
 
     GLuint vao = 0;
     glGenVertexArrays(1, &vao);
-    GLint shader = loadCompileAndLink("../glsl/bullet-debug/");
+    GLint shader = loadCompileAndLink("../../glsl/bullet-debug/");
     auto  debug  = new GLDebugDrawer(vao, shader);
     world->setDebugDrawer(debug);
 
