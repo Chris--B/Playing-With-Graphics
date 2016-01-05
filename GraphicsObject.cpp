@@ -1,17 +1,58 @@
 #include "GraphicsObject.hpp"
 
+#include "ShaderUtils.hpp"
+
 #include <iomanip>
 #include <iostream>
 
-void GraphicsObject::draw() const {
-    if (shapes.empty()) {
-        return;
-    }
+void GraphicsObject::draw(const glm::mat4x4 &projection,
+                          const glm::mat4x4 &view,
+                          const glm::mat4x4 &model) const {
+    glChk();
+
+    glUseProgram(shader);
+
+    // TODO: These do not need to be set every frame!
+    glUniformMatrix4fv(
+        Idx::projection, 1, GL_FALSE, glm::value_ptr(projection));
+    glUniformMatrix4fv(Idx::view, 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(Idx::model, 1, GL_FALSE, glm::value_ptr(model));
 
     for (auto pair : vao_pairs) {
         glBindVertexArray(pair.first);
         glDrawElements(GL_TRIANGLES, pair.second, GL_UNSIGNED_INT, nullptr);
+        glBindVertexArray(0);
     }
+    glUseProgram(0);
+}
+
+void loadBufferObject(GLint idx, const std::vector<float> &data) {
+    glChk();
+    assert(data.size() % 3 == 0 && __FUNCTION__ " expects its data as vec3s.");
+
+    if (data.empty()) {
+        // The object we're trying to load doesn't have any data to load...
+        // So fail silently, else OpenGL tries to read through a NULL pointer.
+        return;
+    }
+
+    // We don't even need the buffer handle - the VAO does it all for us - so
+    // this isn't returned.
+    GLuint buffer;
+    glGenBuffers(1, &buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);
+    glBufferData(GL_ARRAY_BUFFER,
+                 sizeof(data[0]) * data.size(),
+                 &data[0],
+                 GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(idx);
+    glVertexAttribPointer(idx, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glChk();
+
+    glEnableVertexAttribArray(idx);
+    glVertexAttribPointer(idx, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+    glChk();
 }
 
 void GraphicsObject::loadObjFile(const std::string &filename) {
@@ -34,6 +75,14 @@ void GraphicsObject::loadObjFile(const std::string &filename) {
         std::cerr << "Error:  " << error << std::endl;
         abort();
     }
+
+    assert(shader != 0 &&
+           "A shader was not attached before trying to load a file.");
+    glUseProgram(shader);
+
+    // TODO: This does not need to be set here.
+    float sunlight[3] = { 2.0f, 20.0f, 1.0f };
+    glUniform3fv(Idx::sunlight, 1, sunlight);
 
     glChk();
     size_t verts = 0;
@@ -75,32 +124,23 @@ void GraphicsObject::loadObjFile(const std::string &filename) {
         glChk();
 
         // Vertices
-        GLuint vbo;
-        glGenBuffers(1, &vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER,
-                     sizeof(shape.mesh.positions[0]) * positions,
-                     &shape.mesh.positions[0],
-                     GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glChk();
+        loadBufferObject(Idx::vertex, shape.mesh.positions);
+
 
         // Normals
-        GLuint normals;
-        GLint  normalIdx = 2; // glGetAttribLocation(0, // TODO: load a program!
-                              //                "gl_Normal");
-        glChk();
+        loadBufferObject(Idx::normal, shape.mesh.normals);
 
-        glGenBuffers(1, &normals);
-        glBindBuffer(GL_ARRAY_BUFFER, normals);
-        glBufferData(GL_ARRAY_BUFFER,
-                     sizeof(shape.mesh.normals[0]) * positions,
-                     &shape.mesh.normals[0],
-                     GL_STATIC_DRAW);
-        glEnableVertexAttribArray(0);
-        glVertexAttribPointer(normalIdx, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-        glChk();
+        // Materials
+        // tinyobjloader doesn't store these in an easy-to-use fashion,
+        // so we make our own buffer.
+        std::vector<float> diffuse;
+        for (const auto &idx : shape.mesh.indices) {
+            int material_id = shape.mesh.material_ids[idx / 3];
+            diffuse.push_back(materials[material_id].diffuse[0]);
+            diffuse.push_back(materials[material_id].diffuse[1]);
+            diffuse.push_back(materials[material_id].diffuse[2]);
+        }
+        loadBufferObject(Idx::diffuse, diffuse);
 
         vao_pairs.emplace_back(vao, count);
     }

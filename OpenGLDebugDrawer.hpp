@@ -7,6 +7,8 @@
 class GLDebugDrawer : public btIDebugDraw {
 public:
     GLDebugDrawer() = default;
+    GLDebugDrawer(GLint vao, GLint shader);
+
     virtual void setDebugMode(int debugMode) override {
         m_debugMode = debugMode;
     }
@@ -30,18 +32,21 @@ public:
 
     void flushLines() override;
 
+    void updateBuffers();
+    void updateUniforms(const glm::mat4x4 &projection, const glm::mat4x4 &view);
+
 private:
-    struct Line {
-        btVector3 from;
-        btVector3 to;
-        btVector3 color;
+    struct Vertex {
+        glm::vec3 point;
+        glm::vec3 color;
 
-        Line() = default;
-        Line(const btVector3 &from, const btVector3 &to, const btVector3 &color)
-            : from(from), to(to), color(color) {}
+        Vertex(glm::vec3 point, glm::vec3 color) : point(point), color(color) {}
     };
+    GLuint vao    = 0;
+    GLuint vbo    = 0;
+    GLuint shader = 0; // TODO: Write a shader for this
 
-    std::vector<Line> m_lines;
-    int               m_debugMode = btIDebugDraw::DBG_DrawWireframe //
-                      | btIDebugDraw::DBG_DrawFrames;
+    int m_debugMode =
+        btIDebugDraw::DBG_DrawWireframe | btIDebugDraw::DBG_DrawFrames;
+    std::vector<Vertex> m_verts;
 };

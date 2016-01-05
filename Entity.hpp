@@ -12,14 +12,14 @@ public:
         : m_graphics(graphics), m_phys_body(phys_body) {}
     ~Entity() = default;
 
-    void draw() const { getGraphics()->draw(); }
-
     // Whoever allocates is responsible for cleanup. i.e. Not Us.
     void setGraphics(GraphicsObject *graphics) { m_graphics = graphics; }
     void setPhysBody(btCollisionObject *phys_body) { m_phys_body = phys_body; }
 
     GraphicsObject *   getGraphics() const { return m_graphics; }
     btCollisionObject *getPhysBody() const { return m_phys_body; }
+
+    void draw(const glm::mat4x4 &projection, const glm::mat4x4 &view) const;
 
 public:
     // Multiple things might look the same.
